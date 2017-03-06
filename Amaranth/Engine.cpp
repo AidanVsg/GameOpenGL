@@ -40,7 +40,9 @@ void display()
 	//else
 	//	glColor3f(1.0, 1.0, 1.0);
 
-	Character* ch = new Character(pos);
+	Character ch;
+	ch.setPos(pos);
+	ch.draw();
 
 	glFlush();
 }

@@ -1,7 +1,12 @@
 #pragma once
 class Character
 {
+private:
+	float x;
 public:
-	Character(float pos);
+	Character();
+	void setPos(float pos);
+	float getPos();
+	void draw();
 };
 
