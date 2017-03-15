@@ -1,15 +1,17 @@
-
 //includes areas for keyboard control, mouse control, resizing the window
 //and draws a spinning rectangle
 
 #include <windows.h>		// Header file for Windows
 #include <iostream>
 #include <gl\gl.h>			// Header file for the OpenGL32 Library
-#include <gl\glu.h>			// Header file for the GLu32 Library
-#include "Character.h"
-
+#include "Renderer.h"
+#include "UserInput.h"
 //int	mouse_x = 0, mouse_y = 0;
 //bool LeftPressed = false;
+
+Renderer _renderer;
+UserInput _userinput;
+
 int currentWidth = 1280, currentHeight = 720;
 float currentRatio = currentWidth / currentHeight;
 
@@ -21,82 +23,6 @@ float pos = 0;
 //float spin = 0;
 //float speed = 0;
 
-//OPENGL FUNCTION PROTOTYPES
-void display();				//called in winmain to draw everything to the screen
-void reshape(int width, int height);				//called when the window is resized
-void init();				//called in winmain when the program starts.
-void processKeys();         //called in winmain to process keyboard input
-//void update();				//called in winmain to update variables
-
-							/*************    START OF OPENGL FUNCTIONS   ****************/
-void display()
-{
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	glLoadIdentity();
-
-	//if (LeftPressed)
-	//	glColor3f(1.0, 0.0, 0.0);
-	//else
-	//	glColor3f(1.0, 1.0, 1.0);
-
-	Character ch;
-	ch.setPos(pos);
-	ch.draw();
-
-	glFlush();
-}
-
-void reshape(int width, int height)		// Resize the OpenGL window
-{
-	currentWidth = width; currentHeight = height;           // to ensure the mouse coordinates match 
-														  // we will use these values to set the coordinate system
-
-	glViewport(0, 0, width, height);						// Reset the current viewport
-
-	glMatrixMode(GL_PROJECTION);						// select the projection matrix stack
-	glLoadIdentity();									// reset the top of the projection matrix to an identity matrix
-
-	gluOrtho2D(0, currentWidth, 0, currentHeight);           // set the coordinate system for the window
-
-	glMatrixMode(GL_MODELVIEW);							// Select the modelview matrix stack
-	glLoadIdentity();									// Reset the top of the modelview matrix to an identity matrix
-}
-void init()
-{
-	glClearColor(0.0, 0.0, 0.0, 0.0);						//sets the clear colour to black
-															//glClear(GL_COLOR_BUFFER_BIT) in the display function
-															//will clear the buffer to this colour.
-}
-void processKeys()
-{
-	if (keys[VK_UP]){
-		//speed += 0.0001f;
-		//std::cout << "up: " << speed << std::endl;
-	}
-	if (keys[VK_DOWN]){
-		//speed -= 0.0001f;
-		//std::cout << "down: " << speed << std::endl;
-	}
-	if (keys[VK_LEFT]){
-		pos -= 0.1f;
-		std::cout << "left: " << pos << std::endl;
-	}
-	if (keys[VK_RIGHT]) {
-		pos += 0.1f;
-		std::cout << "right: " << pos << std::endl;
-	}
-}
-//void update()
-//{
-//	pos += pos;
-//	//spin += speed;
-//	//if (spin > 360)
-//		//spin = 0;
-//}
-/**************** END OPENGL FUNCTIONS *************************/
-
-//WIN32 functions
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc
 void KillGLWindow();									// releases and destroys the window
 bool CreateGLWindow(char* title, int width, int height); //creates the window
@@ -148,9 +74,9 @@ int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
 			if (keys[VK_ESCAPE])
 				done = true;
 
-			processKeys();			//process keyboard
+			_userinput.processKeys();			//process keyboard
 
-			display();					// Draw The Scene
+			_renderer.display();					// Draw The Scene
 			SwapBuffers(hDC);				// Swap Buffers (Double Buffering)
 		}
 	}
@@ -177,7 +103,7 @@ LRESULT CALLBACK WndProc(HWND	hWnd,			// Handle For This Window
 
 	case WM_SIZE:								// Resize The OpenGL Window
 	{
-		reshape(LOWORD(lParam), HIWORD(lParam));  // LoWord=Width, HiWord=Height
+		_renderer.reshape(LOWORD(lParam), HIWORD(lParam), currentWidth, currentHeight);  // LoWord=Width, HiWord=Height
 		return 0;								// Jump Back
 	}
 	break;
@@ -375,9 +301,11 @@ bool CreateGLWindow(char* title, int width, int height)
 	ShowWindow(hWnd, SW_SHOW);						// Show The Window
 	SetForegroundWindow(hWnd);						// Slightly Higher Priority
 	SetFocus(hWnd);									// Sets Keyboard Focus To The Window
-	reshape(width, height);					// Set Up Our Perspective GL Screen
 
-	init();
+	
+	_renderer.reshape(width, height,currentWidth, currentHeight);					// Set Up Our Perspective GL Screen
+
+	_renderer.init();
 
 	return true;									// Success
 }
