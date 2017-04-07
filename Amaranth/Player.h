@@ -20,6 +20,8 @@ private:
 
 public:
 	Player();
+	void moveRight();
+	void moveLeft();
 };
 
 #endif  //_PLAYER_H

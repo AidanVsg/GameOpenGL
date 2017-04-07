@@ -2,15 +2,9 @@
 #include <windows.h>		// Header file for Windows
 #include <gl\gl.h>			// Header file for the OpenGL32 Library
 #include <gl\glu.h>			// Header file for the GLu32 Library
-#include "World.h"
-#include "Player.h"
 
-Renderer::Renderer()
-{
 
-}
-
-void Renderer::display()
+void Renderer::display(Entity entity)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -22,11 +16,10 @@ void Renderer::display()
 	//	glColor3f(1.0, 1.0, 1.0);
 
 	//World _world; //TODO learn how to put all objects in a list (possibly VECTOR structure)
-	Player _player;
 
 	//_world.addEntity(_player); //TODO objects in list
-	_player.setCoordX(0);
-	drawEntity(_player);
+	//player.setCoordX(0);
+	drawEntity(entity);
 
 
 	glFlush();
@@ -57,7 +50,6 @@ void Renderer::init()
 
 void Renderer::update()
 {
-	//pos += pos;
 	//spin += speed;
 	//if (spin > 360)
 	//spin = 0;

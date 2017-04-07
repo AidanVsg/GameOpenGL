@@ -9,8 +9,10 @@
 //int	mouse_x = 0, mouse_y = 0;
 //bool LeftPressed = false;
 
+
+Player player;
 Renderer _renderer;
-UserInput _userinput;
+UserInput input;
 
 int currentWidth = 1280, currentHeight = 720;
 float currentRatio = currentWidth / currentHeight;
@@ -22,6 +24,62 @@ bool keys[256];
 float pos = 0;
 //float spin = 0;
 //float speed = 0;
+void processKeys()
+{
+	if (keys[VK_UP]) {
+		//speed += 0.0001f;
+		//std::cout << "up: " << speed << std::endl;
+	}
+	if (keys[VK_DOWN]) {
+		//speed -= 0.0001f;
+		//std::cout << "down: " << speed << std::endl;
+	}
+	if (keys[VK_LEFT]) {
+		//pos -= 0.5f;
+		//std::cout << "left: " << pos << std::endl;
+
+		//Player.mvLeft();
+	}
+	if (keys[VK_RIGHT]) {
+		//pos += 0.5f;
+		player.moveRight();
+		std::cout << "right: " << player.getCoordX() << std::endl;
+
+		//Player.mvRight();
+	}
+}
+void drawEntity()
+{
+	glTranslatef(player.getCoordX(), 0.0, 0.0);
+
+	glBegin(GL_POLYGON);
+	glVertex2f(0, 0);
+	glVertex2f(0, 50);
+	glVertex2f(50, 50);
+	glVertex2f(50, 0);
+	glEnd();
+
+}
+void display()
+{
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glLoadIdentity();
+
+	//if (LeftPressed)
+	//	glColor3f(1.0, 0.0, 0.0);
+	//else
+	//	glColor3f(1.0, 1.0, 1.0);
+
+	//World _world; //TODO learn how to put all objects in a list (possibly VECTOR structure)
+
+	//_world.addEntity(_player); //TODO objects in list
+	//player.setCoordX(0);
+	drawEntity();
+
+
+	glFlush();
+}
 
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc
 void KillGLWindow();									// releases and destroys the window
@@ -74,9 +132,10 @@ int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
 			if (keys[VK_ESCAPE])
 				done = true;
 
-			_userinput.processKeys();			//process keyboard
-
-			_renderer.display();					// Draw The Scene
+			//processKeys();
+			processKeys();			//process keyboard
+			//display();
+			_renderer.display(player);					// Draw The Scene
 			SwapBuffers(hDC);				// Swap Buffers (Double Buffering)
 		}
 	}
