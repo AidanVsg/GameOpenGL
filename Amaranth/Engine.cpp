@@ -1,18 +1,12 @@
-//includes areas for keyboard control, mouse control, resizing the window
-//and draws a spinning rectangle
-
 #include <windows.h>		// Header file for Windows
 #include <iostream>
 #include <gl\gl.h>			// Header file for the OpenGL32 Library
 #include "Renderer.h"
-#include "UserInput.h"
-//int	mouse_x = 0, mouse_y = 0;
-//bool LeftPressed = false;
+
 
 
 Player player;
 Renderer _renderer;
-UserInput input;
 
 int currentWidth = 1280, currentHeight = 720;
 float currentRatio = currentWidth / currentHeight;
@@ -22,30 +16,26 @@ float targetRatio = targetWidth / targetHeight;
 
 bool keys[256];
 float pos = 0;
-//float spin = 0;
-//float speed = 0;
+;
 void processKeys()
 {
 	if (keys[VK_UP]) {
-		//speed += 0.0001f;
-		//std::cout << "up: " << speed << std::endl;
+
+		//TODO jump
 	}
 	if (keys[VK_DOWN]) {
-		//speed -= 0.0001f;
-		//std::cout << "down: " << speed << std::endl;
-	}
-	if (keys[VK_LEFT]) {
-		//pos -= 0.5f;
-		//std::cout << "left: " << pos << std::endl;
 
-		//Player.mvLeft();
+		//TODO crouch/go down
 	}
-	if (keys[VK_RIGHT]) {
-		//pos += 0.5f;
+	if (keys[VK_LEFT] || keys[0x41]) {
+
+		player.moveLeft();
+		std::cout << "left: " << player.getCoordX() << std::endl;
+	}
+	if (keys[VK_RIGHT] || keys[0x44]) {
+
 		player.moveRight();
 		std::cout << "right: " << player.getCoordX() << std::endl;
-
-		//Player.mvRight();
 	}
 }
 void drawEntity()
@@ -133,10 +123,10 @@ int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
 				done = true;
 
 			//processKeys();
-			processKeys();			//process keyboard
+			processKeys();								//process keyboard
 			//display();
 			_renderer.display(player);					// Draw The Scene
-			SwapBuffers(hDC);				// Swap Buffers (Double Buffering)
+			SwapBuffers(hDC);							// Swap Buffers (Double Buffering)
 		}
 	}
 
@@ -151,7 +141,7 @@ LRESULT CALLBACK WndProc(HWND	hWnd,			// Handle For This Window
 	WPARAM	wParam,			// Additional Message Information
 	LPARAM	lParam)			// Additional Message Information
 {
-	switch (uMsg)									// Check For Windows Messages
+	switch (uMsg)								// Check For Windows Messages
 	{
 	case WM_CLOSE:								// Did We Receive A Close Message?
 	{
