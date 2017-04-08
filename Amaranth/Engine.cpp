@@ -2,21 +2,24 @@
 #include <iostream>
 #include <gl\gl.h>			// Header file for the OpenGL32 Library
 #include "Renderer.h"
+#include <ctime>
 
-
+float speed;
 
 Player player;
 Renderer _renderer;
 
-int currentWidth = 1280, currentHeight = 720;
+int currentWidth = 800, currentHeight = 600;
 float currentRatio = currentWidth / currentHeight;
 
-int targetWidth = 1280, targetHeight = 720;
+int targetWidth = 800, targetHeight = 600;
 float targetRatio = targetWidth / targetHeight;
+
+//float AR = currentWidth/targetWidth;
 
 bool keys[256];
 float pos = 0;
-;
+
 void processKeys()
 {
 	if (keys[VK_UP]) {
@@ -37,38 +40,6 @@ void processKeys()
 		player.moveRight();
 		std::cout << "right: " << player.getCoordX() << std::endl;
 	}
-}
-void drawEntity()
-{
-	glTranslatef(player.getCoordX(), 0.0, 0.0);
-
-	glBegin(GL_POLYGON);
-	glVertex2f(0, 0);
-	glVertex2f(0, 50);
-	glVertex2f(50, 50);
-	glVertex2f(50, 0);
-	glEnd();
-
-}
-void display()
-{
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	glLoadIdentity();
-
-	//if (LeftPressed)
-	//	glColor3f(1.0, 0.0, 0.0);
-	//else
-	//	glColor3f(1.0, 1.0, 1.0);
-
-	//World _world; //TODO learn how to put all objects in a list (possibly VECTOR structure)
-
-	//_world.addEntity(_player); //TODO objects in list
-	//player.setCoordX(0);
-	drawEntity();
-
-
-	glFlush();
 }
 
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc
@@ -103,6 +74,7 @@ int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
 		return 0;									// Quit If Window Was Not Created
 	}
 
+
 	while (!done)									// Loop That Runs While done=FALSE
 	{
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))	// Is There A Message Waiting?
@@ -119,14 +91,15 @@ int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
 		}
 		else										// If There Are No Messages
 		{
-			if (keys[VK_ESCAPE])
-				done = true;
+				if (keys[VK_ESCAPE])
+					done = true;
 
-			//processKeys();
-			processKeys();								//process keyboard
-			//display();
-			_renderer.display(player);					// Draw The Scene
-			SwapBuffers(hDC);							// Swap Buffers (Double Buffering)
+				player.setAR(targetWidth / currentWidth);
+				processKeys();								//process keyboard			
+				_renderer.display(player);					// Draw The Scene
+
+				SwapBuffers(hDC);							// Swap Buffers (Double Buffering)
+			
 		}
 	}
 
@@ -353,7 +326,6 @@ bool CreateGLWindow(char* title, int width, int height)
 
 	
 	_renderer.reshape(width, height,currentWidth, currentHeight);					// Set Up Our Perspective GL Screen
-
 	_renderer.init();
 
 	return true;									// Success

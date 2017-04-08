@@ -21,7 +21,6 @@ void Renderer::display(Entity entity)
 	//player.setCoordX(0);
 	drawEntity(entity);
 
-
 	glFlush();
 }
 
@@ -57,14 +56,16 @@ void Renderer::update()
 
 void Renderer::drawEntity(Entity _entity)
 {
-		glTranslatef(_entity.getCoordX(), 0.0, 0.0);
+	glPushMatrix();
+	glTranslatef(_entity.getCoordX(), 0.0, 0.0);
+	glBegin(GL_POLYGON);
+	glVertex2f(0, 0);
+	glVertex2f(25, 50);
+	glVertex2f(50, 0);
+	glVertex2f(50, 0);
+	glEnd();
+	glPopMatrix();
 
-		glBegin(GL_POLYGON);
-		glVertex2f(0, 0);
-		glVertex2f(0, 50);
-		glVertex2f(50, 50);
-		glVertex2f(50, 0);
-		glEnd();
 
 }
 

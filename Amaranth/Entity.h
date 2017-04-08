@@ -8,6 +8,7 @@ public:
 	//CONSTRUCTORS
 	Entity();
 	//SETTERS
+	void setAR(float ar);
 	void setTexture(Texture _texture);
 	void setCoordX(float x);
 	void setCoordY(float y);
@@ -18,6 +19,8 @@ public:
 	float getCoordY();
 	float getHitPoints();
 protected:
+	float speed; //entity speed
+	float AR; 
 	Texture texture;
 	float coordX = 0.0;
 	float coordY = 0.0;
