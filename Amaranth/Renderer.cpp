@@ -57,7 +57,7 @@ void Renderer::update()
 void Renderer::drawEntity(Entity _entity)
 {
 	glPushMatrix();
-	glTranslatef(_entity.getCoordX(), 0.0, 0.0);
+	glTranslatef(_entity.getCoordX(), _entity.getCoordY(), 0.0);
 	glBegin(GL_POLYGON);
 	glVertex2f(0, 0);
 	glVertex2f(25, 50);

@@ -24,7 +24,8 @@ void processKeys()
 {
 	if (keys[VK_UP]) {
 
-		//TODO jump
+		player.jump();
+		std::cout << "up: " << player.getCoordY() << std::endl;
 	}
 	if (keys[VK_DOWN]) {
 
@@ -94,8 +95,12 @@ int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
 				if (keys[VK_ESCAPE])
 					done = true;
 
+
+				
 				player.setAR(targetWidth / currentWidth);
-				processKeys();								//process keyboard			
+				player.checkJumpState();
+				processKeys();								//process keyboard		
+								
 				_renderer.display(player);					// Draw The Scene
 
 				SwapBuffers(hDC);							// Swap Buffers (Double Buffering)

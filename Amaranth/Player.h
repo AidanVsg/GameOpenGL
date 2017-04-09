@@ -4,10 +4,16 @@
 #include "Entity.h"
 
 class Player : public Entity {
-public:
+private:
+	float initialCoordY;
+public:	
+	enum class JumpState;
+	JumpState state;
 	Player();
 	void moveRight();
 	void moveLeft();
+	void jump();
+	void checkJumpState();
 };
 
 #endif  //_PLAYER_H
