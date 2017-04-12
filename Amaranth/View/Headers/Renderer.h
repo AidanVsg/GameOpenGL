@@ -1,6 +1,6 @@
-#include "Entity.h"
-#include "Player.h"
-#include "World.h"
+#include "../Object/Headers/Entity.h"
+#include "../Object/Headers/Player.h"
+#include "../Object/Headers/World.h"
 
 #pragma once
 class Renderer

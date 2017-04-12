@@ -1,7 +1,7 @@
 #include <windows.h>		// Header file for Windows
 #include <iostream>
 #include <gl\gl.h>			// Header file for the OpenGL32 Library
-#include "Renderer.h"
+#include "../View/Headers/Renderer.h"
 #include <ctime>
 
 float speed;
@@ -23,7 +23,7 @@ float pos = 0;
 void processKeys()
 {
 	if (keys[VK_UP]) {
-
+		
 		player.jump();
 		std::cout << "up: " << player.getCoordY() << std::endl;
 	}

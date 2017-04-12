@@ -1,7 +1,7 @@
 #if !defined(_PROP_H)
 #define _PROP_H
 
-#include "Entity.h"
+#include "../Object/Headers/Entity.h"
 
 class Prop : public Entity {
 public:

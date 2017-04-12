@@ -1,7 +1,7 @@
 #if !defined(_NPC_H)
 #define _NPC_H
 
-#include "Entity.h"
+#include "../Object/Headers/Entity.h"
 
 class NPC : public Entity {
 private:

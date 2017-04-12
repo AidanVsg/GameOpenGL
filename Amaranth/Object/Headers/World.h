@@ -1,7 +1,7 @@
 #if !defined(_WORLD_H)
 #define _WORLD_H
 
-#include "Entity.h"
+#include "../Object/Headers/Entity.h"
 
 class World {
 private:

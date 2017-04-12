@@ -1,4 +1,4 @@
-#include "Renderer.h"
+#include "../View/Headers/Renderer.h"
 #include <windows.h>		// Header file for Windows
 #include <gl\gl.h>			// Header file for the OpenGL32 Library
 #include <gl\glu.h>			// Header file for the GLu32 Library

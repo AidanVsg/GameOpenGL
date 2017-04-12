@@ -1,7 +1,7 @@
 #if !defined(_ENTITY_H)
 #define _ENTITY_H
 
-#include "Texture.h"
+#include "../View/Headers/Texture.h"
 
 class Entity {
 public:

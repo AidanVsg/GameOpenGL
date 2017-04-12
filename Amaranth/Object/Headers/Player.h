@@ -1,7 +1,7 @@
 #if !defined(_PLAYER_H)
 #define _PLAYER_H
 
-#include "Entity.h"
+#include "../Object/Headers/Entity.h"
 
 class Player : public Entity {
 private:
