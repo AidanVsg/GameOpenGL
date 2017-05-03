@@ -7,7 +7,7 @@ World::World() {
 
 Entity World::getEntity(int x)
 {
-	if (x < 0 || x > numberOfEntities) {
+	if (x < 0 || x > entities.size) {
 		std::cout << "Entity" << x << "does not exist" << std::endl;
 		return entities[0];
 	}
@@ -17,8 +17,7 @@ Entity World::getEntity(int x)
 	
 }
 
-void World::addEntity(Entity _entity)
+void World::addEntity(Entity e)
 {
-	entities[numberOfEntities] = _entity;
-	numberOfEntities++;
+	entities.push_back(e);
 }

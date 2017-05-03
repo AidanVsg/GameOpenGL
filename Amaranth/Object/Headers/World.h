@@ -2,15 +2,16 @@
 #define _WORLD_H
 
 #include "../Object/Headers/Entity.h"
+#include <vector>
 
 class World {
 private:
     int numberOfEntities = 0;
-	Entity* entities;
+	std::vector<Entity> entities;
 public:
 	World();
 	Entity getEntity(int x);
-	void addEntity(Entity _entity);
+	void addEntity(Entity entity);
 };
 
 
