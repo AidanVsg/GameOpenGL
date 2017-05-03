@@ -4,21 +4,12 @@
 #include "../View/Headers/Renderer.h"
 #include <ctime>
 
-float speed;
-
 Player player;
-Renderer _renderer;
+Renderer renderer;
 
-int currentWidth = 800, currentHeight = 600;
-float currentRatio = currentWidth / currentHeight;
-
-int targetWidth = 800, targetHeight = 600;
-float targetRatio = targetWidth / targetHeight;
-
-//float AR = currentWidth/targetWidth;
-
-bool keys[256];
-float pos = 0;
+GLuint currentWidth = 800, currentHeight = 600;
+GLuint targetWidth = 800, targetHeight = 600;
+boolean keys[256];
 
 void processKeys()
 {
@@ -35,6 +26,7 @@ void processKeys()
 
 		player.moveLeft();
 		std::cout << "left: " << player.getCoordX() << std::endl;
+		std::cout << "left: " << player.getAR() << std::endl;
 	}
 	if (keys[VK_RIGHT] || keys[0x44]) {
 
@@ -92,16 +84,14 @@ int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
 		}
 		else										// If There Are No Messages
 		{
-				if (keys[VK_ESCAPE])
-					done = true;
+				if (keys[VK_ESCAPE]) done = true;
 
-
+				player.setAR((GLfloat) currentWidth / (GLfloat) targetWidth);
 				
-				player.setAR(targetWidth / currentWidth);
 				player.checkJumpState();
 				processKeys();								//process keyboard		
 								
-				_renderer.display(player);					// Draw The Scene
+				renderer.display(player);					// Draw The Scene
 
 				SwapBuffers(hDC);							// Swap Buffers (Double Buffering)
 			
@@ -115,9 +105,9 @@ int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
 
 //WIN32 Processes function - useful for responding to user inputs or other events.
 LRESULT CALLBACK WndProc(HWND	hWnd,			// Handle For This Window
-	UINT	uMsg,			// Message For This Window
-	WPARAM	wParam,			// Additional Message Information
-	LPARAM	lParam)			// Additional Message Information
+	UINT	uMsg,								// Message For This Window
+	WPARAM	wParam,								// Additional Message Information
+	LPARAM	lParam)								// Additional Message Information
 {
 	switch (uMsg)								// Check For Windows Messages
 	{
@@ -130,7 +120,9 @@ LRESULT CALLBACK WndProc(HWND	hWnd,			// Handle For This Window
 
 	case WM_SIZE:								// Resize The OpenGL Window
 	{
-		_renderer.reshape(LOWORD(lParam), HIWORD(lParam), currentWidth, currentHeight);  // LoWord=Width, HiWord=Height
+		renderer.reshape(LOWORD(lParam), HIWORD(lParam), currentWidth, currentHeight);  // LoWord=Width, HiWord=Height
+		currentWidth = LOWORD(lParam);
+		currentHeight = HIWORD(lParam);
 		return 0;								// Jump Back
 	}
 	break;
@@ -330,8 +322,9 @@ bool CreateGLWindow(char* title, int width, int height)
 	SetFocus(hWnd);									// Sets Keyboard Focus To The Window
 
 	
-	_renderer.reshape(width, height,currentWidth, currentHeight);					// Set Up Our Perspective GL Screen
-	_renderer.init();
+	renderer.reshape(width, height,
+					currentWidth, currentHeight);	// Set Up Our Perspective GL Screen
+	renderer.init();
 
 	return true;									// Success
 }

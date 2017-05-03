@@ -1,8 +1,4 @@
 #include "../View/Headers/Renderer.h"
-#include <windows.h>		// Header file for Windows
-#include <gl\gl.h>			// Header file for the OpenGL32 Library
-#include <gl\glu.h>			// Header file for the GLu32 Library
-
 
 void Renderer::display(Entity entity)
 {
@@ -54,16 +50,16 @@ void Renderer::update()
 	//spin = 0;
 }
 
-void Renderer::drawEntity(Entity _entity)
+void Renderer::drawEntity(Entity entity)
 {
 	glPushMatrix();
-	glTranslatef(_entity.getCoordX(), _entity.getCoordY(), 0.0);
-	glBegin(GL_POLYGON);
-	glVertex2f(0, 0);
-	glVertex2f(25, 50);
-	glVertex2f(50, 0);
-	glVertex2f(50, 0);
-	glEnd();
+		glTranslatef(entity.getCoordX(), entity.getCoordY(), 0.0);
+		glBegin(GL_POLYGON);
+			glVertex2f(0, 0);
+			glVertex2f(25, 50);
+			glVertex2f(50, 0);
+			glVertex2f(50, 0);
+		glEnd();
 	glPopMatrix();
 
 

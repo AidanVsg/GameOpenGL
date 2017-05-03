@@ -3,6 +3,7 @@
 
 #include "../View/Headers/Texture.h"
 
+
 class Entity {
 public:
 	//CONSTRUCTORS
@@ -10,12 +11,13 @@ public:
 	~Entity();
 	//SETTERS
 	inline void setAR(float ar);
-	inline void setTexture(Texture _texture);
+	inline void setTexture(Texture texture);
 	inline void setCoordX(float x);
 	inline void setCoordY(float y);
 	inline void setHitPoints(float hp);
 	//GETTERS
 	inline Texture getTexture();
+	inline float getAR();
 	inline float getCoordX();
 	inline float getCoordY();
 	inline float getHitPoints();
@@ -23,17 +25,19 @@ protected:
 	float speed; //entity speed
 	float AR; 
 	Texture texture;
-	float coordX = 0.0;
-	float coordY = 0.0;
-	float hitPoints = 0.0;
+	float coordX;
+	float coordY;
+	float hitPoints;
 };
 
 inline void Entity::setAR(float ar) {
+	
 	this->AR = ar;
 }
 
-inline void Entity::setTexture(Texture _texture)
-{
+inline float Entity::getAR() {
+
+	return this->AR;
 }
 
 inline void Entity::setCoordX(float x)
@@ -53,12 +57,12 @@ inline void Entity::setHitPoints(float hp)
 
 inline float Entity::getCoordX()
 {
-	return coordX;
+	return this->coordX;
 }
 
 inline float Entity::getCoordY()
 {
-	return coordY;
+	return this->coordY;
 }
 
 inline float Entity::getHitPoints()
@@ -66,11 +70,15 @@ inline float Entity::getHitPoints()
 	return hitPoints;
 }
 
-inline Texture Entity::getTexture()
+void Entity::setTexture(Texture texture)
 {
-	return Texture();
+	this->texture = texture;
 }
 
+Texture Entity::getTexture()
+{
+	return this->texture;
+}
 
 
 #endif  //_ENTITY_H

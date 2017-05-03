@@ -8,8 +8,12 @@ enum class Player::JumpState {
 
 Player::Player()
 {
+	this->AR = 1;
+	this->coordX = 0.0f;
+	this->coordY = 0.0f;
+	this->hitPoints = 0.0f;
 	this->state = JumpState::ON_GROUND;
-	this->speed = 0.331; //TODO add momentum
+	this->speed = 0.33; //TODO add momentum
 }
 
 void Player::moveRight()
