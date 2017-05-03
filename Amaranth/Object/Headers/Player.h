@@ -2,11 +2,16 @@
 #define _PLAYER_H
 
 #include "../Object/Headers/Entity.h"
+#include "windows.h"
+#include <iostream>
 
 class Player : public Entity {
 private:
 	float initialCoordY;
 public:	
+	bool keys[256];
+	void processKeys();
+
 	enum class JumpState;
 	JumpState state;
 	Player();
@@ -16,4 +21,4 @@ public:
 	void checkJumpState();
 };
 
-#endif  //_PLAYER_H
+#endif  _PLAYER_H

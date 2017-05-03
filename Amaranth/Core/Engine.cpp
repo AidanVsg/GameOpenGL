@@ -2,38 +2,16 @@
 #include <iostream>
 #include <gl\gl.h>			// Header file for the OpenGL32 Library
 #include "../View/Headers/Renderer.h"
+#include "../View/Headers/Scene.h"
+#include "../Object/Headers/Player.h"
 #include <ctime>
 
 Player player;
 Renderer renderer;
+Scene scene;
 
 GLuint currentWidth = 800, currentHeight = 600;
 GLuint targetWidth = 800, targetHeight = 600;
-boolean keys[256];
-
-void processKeys()
-{
-	if (keys[VK_UP]) {
-		
-		player.jump();
-		std::cout << "up: " << player.getCoordY() << std::endl;
-	}
-	if (keys[VK_DOWN]) {
-
-		//TODO crouch/go down
-	}
-	if (keys[VK_LEFT] || keys[0x41]) {
-
-		player.moveLeft();
-		std::cout << "left: " << player.getCoordX() << std::endl;
-		std::cout << "left: " << player.getAR() << std::endl;
-	}
-	if (keys[VK_RIGHT] || keys[0x44]) {
-
-		player.moveRight();
-		std::cout << "right: " << player.getCoordX() << std::endl;
-	}
-}
 
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc
 void KillGLWindow();									// releases and destroys the window
@@ -84,15 +62,10 @@ int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
 		}
 		else										// If There Are No Messages
 		{
-				if (keys[VK_ESCAPE]) done = true;
-
-				player.setAR((GLfloat) currentWidth / (GLfloat) targetWidth);
-				
-				player.checkJumpState();
-				processKeys();								//process keyboard		
-								
-				renderer.display(player);					// Draw The Scene
-
+				if (player.keys[VK_ESCAPE]) done = true;	
+				player.setWidthAR((GLfloat)currentWidth / (GLfloat)targetWidth);
+				player.setHeightAR((GLfloat)currentHeight / (GLfloat)targetHeight);
+				scene.draw(player, renderer);
 				SwapBuffers(hDC);							// Swap Buffers (Double Buffering)
 			
 		}
@@ -149,13 +122,13 @@ LRESULT CALLBACK WndProc(HWND	hWnd,			// Handle For This Window
 	break;
 	case WM_KEYDOWN:							// Is A Key Being Held Down?
 	{
-		keys[wParam] = true;					// If So, Mark It As TRUE
+		player.keys[wParam] = true;					// If So, Mark It As TRUE
 		return 0;								// Jump Back
 	}
 	break;
 	case WM_KEYUP:								// Has A Key Been Released?
 	{
-		keys[wParam] = false;					// If So, Mark It As FALSE
+		player.keys[wParam] = false;					// If So, Mark It As FALSE
 		return 0;								// Jump Back
 	}
 	break;
