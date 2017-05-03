@@ -7,7 +7,7 @@ class NPC : public Entity {
 private:
 	bool isAlly;
 public:
-	NPC();
+	NPC(float coordX, float coordY, bool isAlly);
 };
 
 #endif  //_NPC_H

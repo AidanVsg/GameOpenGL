@@ -2,13 +2,14 @@
 #include <iostream>
 #include <gl\gl.h>			// Header file for the OpenGL32 Library
 #include "../View/Headers/Renderer.h"
-#include "../View/Headers/Scene.h"
+#include "../Object/Headers/NPC.h"
 #include "../Object/Headers/Player.h"
 #include "../Object/Headers/World.h"
 #include <ctime>
 
 Player player;
 Renderer renderer;
+World world;
 
 GLuint currentWidth = 800, currentHeight = 600;
 GLuint targetWidth = 800, targetHeight = 600;
@@ -64,12 +65,14 @@ int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
 		{
 				if (player.keys[VK_ESCAPE]) done = true;
 
-				player.setAR((GLfloat) currentWidth / (GLfloat) targetWidth);
 				
+
+				player.setAR((GLfloat)currentWidth / (GLfloat)targetWidth,
+					(GLfloat) currentHeight / (GLfloat) targetHeight);
 				player.checkJumpState();
 				player.processKeys();								//process keyboard		
-								
-				renderer.display(player);					// Draw The Scene
+
+				renderer.display(player, world);					// Draw The Scene
 
 				SwapBuffers(hDC);							// Swap Buffers (Double Buffering)
 			
@@ -99,8 +102,12 @@ LRESULT CALLBACK WndProc(HWND	hWnd,			// Handle For This Window
 	case WM_SIZE:								// Resize The OpenGL Window
 	{
 		renderer.reshape(LOWORD(lParam), HIWORD(lParam), currentWidth, currentHeight);  // LoWord=Width, HiWord=Height
-		currentWidth = LOWORD(lParam);
-		currentHeight = HIWORD(lParam);
+		if (LOWORD(lParam) >= targetWidth && HIWORD(lParam) >= targetHeight)
+		{	
+			currentWidth = LOWORD(lParam);
+			currentHeight = HIWORD(lParam);
+		}
+		
 		return 0;								// Jump Back
 	}
 	break;
@@ -303,6 +310,8 @@ bool CreateGLWindow(char* title, int width, int height)
 	renderer.reshape(width, height,
 					currentWidth, currentHeight);	// Set Up Our Perspective GL Screen
 	renderer.init();
+	world.addEntity(NPC(250, 0, true));
+	world.addEntity(NPC(500, 0, true));
 
 	return true;									// Success
 }

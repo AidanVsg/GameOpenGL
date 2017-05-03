@@ -1,6 +1,6 @@
 #include "../View/Headers/Renderer.h"
 
-void Renderer::display(Entity entity)
+void Renderer::display(Player p, World world)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -15,7 +15,13 @@ void Renderer::display(Entity entity)
 
 	//_world.addEntity(_player); //TODO objects in list
 	//player.setCoordX(0);
-	drawEntity(entity);
+	drawEntity(p);
+
+	for (Entity e : world.getEntities())
+	{
+		drawEntity(e);
+	}
+	
 
 	glFlush();
 }

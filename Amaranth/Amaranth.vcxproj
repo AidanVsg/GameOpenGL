@@ -25,7 +25,6 @@
     <ClCompile Include="Object\Player.cpp" />
     <ClCompile Include="Object\Prop.cpp" />
     <ClCompile Include="View\Renderer.cpp" />
-    <ClCompile Include="View\Scene.cpp" />
     <ClCompile Include="View\Texture.cpp" />
     <ClCompile Include="Object\World.cpp" />
   </ItemGroup>
@@ -35,7 +34,6 @@
     <ClInclude Include="Object\Headers\Player.h" />
     <ClInclude Include="Object\Headers\Prop.h" />
     <ClInclude Include="View\Headers\Renderer.h" />
-    <ClInclude Include="View\Headers\Scene.h" />
     <ClInclude Include="View\Headers\Texture.h" />
     <ClInclude Include="Object\Headers\World.h" />
   </ItemGroup>

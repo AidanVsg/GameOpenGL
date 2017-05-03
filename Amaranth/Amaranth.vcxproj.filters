@@ -38,9 +38,6 @@
     <ClCompile Include="Object\Player.cpp">
       <Filter>Source Files\Object</Filter>
     </ClCompile>
-    <ClCompile Include="View\Scene.cpp">
-      <Filter>Source Files\View</Filter>
-    </ClCompile>
     <ClCompile Include="View\Texture.cpp">
       <Filter>Source Files\View</Filter>
     </ClCompile>
@@ -66,9 +63,6 @@
     </ClInclude>
     <ClInclude Include="Object\Headers\Prop.h">
       <Filter>Header Files\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="View\Headers\Scene.h">
-      <Filter>Header Files\View</Filter>
     </ClInclude>
     <ClInclude Include="View\Headers\Texture.h">
       <Filter>Header Files\View</Filter>

@@ -8,12 +8,12 @@ enum class Player::JumpState {
 
 void Player::processKeys()
 {
-	if (keys[VK_UP]) {
+	if (keys[VK_UP] || keys[0x57]) {
 
 		jump();
 		std::cout << "up: " << getCoordY() << std::endl;
 	}
-	if (keys[VK_DOWN]) {
+	if (keys[VK_DOWN] || keys[0x53]) {
 
 		//TODO crouch/go down
 	}
@@ -21,7 +21,7 @@ void Player::processKeys()
 
 		moveLeft();
 		std::cout << "left: " << getCoordX() << std::endl;
-		std::cout << "left: " << getAR() << std::endl;
+		std::cout << "left: " << getW_AR() << std::endl;
 	}
 	if (keys[VK_RIGHT] || keys[0x44]) {
 
@@ -32,7 +32,8 @@ void Player::processKeys()
 
 Player::Player()
 {
-	this->AR = 1;
+	this->wAR = 1;
+	this->hAR = 1;
 	this->coordX = 0.0f;
 	this->coordY = 0.0f;
 	this->hitPoints = 0.0f;
@@ -42,12 +43,12 @@ Player::Player()
 
 void Player::moveRight()
 {
-	setCoordX(getCoordX() + (speed*AR));
+	setCoordX(getCoordX() + (speed*wAR));
 }
 
 void Player::moveLeft()
 {
-	setCoordX(getCoordX() - (speed*AR));
+	setCoordX(getCoordX() - (speed*wAR));
 }
 
 void Player::jump()
@@ -64,7 +65,7 @@ void Player::checkJumpState()
 
 		if (getCoordY() < 80) 
 		{
-			setCoordY(getCoordY() + (speed*AR));
+			setCoordY(getCoordY() + (speed*hAR));
 		}
 		else 
 		{
@@ -76,7 +77,7 @@ void Player::checkJumpState()
 
 		if (getCoordY() > 0) 
 		{
-			setCoordY(getCoordY() - (speed*AR));
+			setCoordY(getCoordY() - (speed*hAR));
 		}
 		else
 		{

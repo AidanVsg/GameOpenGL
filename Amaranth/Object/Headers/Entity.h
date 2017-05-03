@@ -10,34 +10,42 @@ public:
 	Entity();
 	~Entity();
 	//SETTERS
-	inline void setAR(float ar);
+	inline void setAR(float wAR, float hAR);
 	inline void setTexture(Texture texture);
 	inline void setCoordX(float x);
 	inline void setCoordY(float y);
 	inline void setHitPoints(float hp);
 	//GETTERS
 	inline Texture getTexture();
-	inline float getAR();
+	inline float getW_AR();
+	inline float getH_AR();
 	inline float getCoordX();
 	inline float getCoordY();
 	inline float getHitPoints();
 protected:
 	float speed; //entity speed
-	float AR; 
+	float wAR; 
+	float hAR;
 	Texture texture;
 	float coordX;
 	float coordY;
 	float hitPoints;
 };
 
-inline void Entity::setAR(float ar) {
+inline void Entity::setAR(float wAR, float hAR) {
 	
-	this->AR = ar;
+	this->wAR = wAR;
+	this->hAR = hAR;
 }
 
-inline float Entity::getAR() {
+inline float Entity::getW_AR() {
 
-	return this->AR;
+	return this->wAR;
+}
+
+inline float Entity::getH_AR() {
+
+	return this->hAR;
 }
 
 inline void Entity::setCoordX(float x)

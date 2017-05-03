@@ -13,7 +13,7 @@ private:
 	Player player;
 	
 public:
-	void display(Entity entity);						//called in winmain to draw everything to the screen
+	void display(Player p, World world);						//called in winmain to draw everything to the screen
 	void reshape(int width, int height, 
 				int currentWidth, int currentHeight);	//called when the window is resized
 	void init();										//called in winmain when the program starts.
