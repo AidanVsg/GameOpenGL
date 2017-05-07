@@ -18,6 +18,6 @@ public:
 				int currentWidth, int currentHeight);	//called when the window is resized
 	void init();										//called in winmain when the program starts.
 	void update();										//called in winmain to update variables
-	void drawEntity(Entity entity);					//draws an Entity (Player, NPC)
+	void drawEntity(Entity entity, std::vector<std::pair<int, int>> coordset);			//draws an Entity (Player, NPC)
 
 };

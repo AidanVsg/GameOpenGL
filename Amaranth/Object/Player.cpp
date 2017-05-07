@@ -39,6 +39,11 @@ Player::Player()
 	this->hitPoints = 0.0f;
 	this->state = JumpState::ON_GROUND;
 	this->speed = 0.33; //TODO add momentum
+
+	this->coordset.push_back({ 0,0 });
+	this->coordset.push_back({ 25,50 });
+	this->coordset.push_back({ 50,0 });
+	this->coordset.push_back({ 50,0 });
 }
 
 void Player::moveRight()

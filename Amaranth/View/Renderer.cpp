@@ -15,11 +15,11 @@ void Renderer::display(Player p, World world)
 
 	//_world.addEntity(_player); //TODO objects in list
 	//player.setCoordX(0);
-	drawEntity(p);
+	drawEntity(p, p.getCoords());
 
 	for (Entity e : world.getEntities())
 	{
-		drawEntity(e);
+		drawEntity(e, e.getCoords());
 	}
 	
 
@@ -56,15 +56,20 @@ void Renderer::update()
 	//spin = 0;
 }
 
-void Renderer::drawEntity(Entity entity)
+void Renderer::drawEntity(Entity entity, std::vector<std::pair<int,int>> coordset)
 {
 	glPushMatrix();
 		glTranslatef(entity.getCoordX(), entity.getCoordY(), 0.0);
 		glBegin(GL_POLYGON);
-			glVertex2f(0, 0);
-			glVertex2f(25, 50);
-			glVertex2f(50, 0);
-			glVertex2f(50, 0);
+		for (auto coords : coordset) {
+			int x = coords.first;
+			int y = coords.second;
+
+			glVertex2f(x, y);
+
+		}
+			
+
 		glEnd();
 	glPopMatrix();
 

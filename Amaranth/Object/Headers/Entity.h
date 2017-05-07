@@ -2,6 +2,7 @@
 #define _ENTITY_H
 
 #include "../View/Headers/Texture.h"
+#include <vector>
 
 
 class Entity {
@@ -15,6 +16,7 @@ public:
 	inline void setCoordX(float x);
 	inline void setCoordY(float y);
 	inline void setHitPoints(float hp);
+	inline void setCoords(std::vector<std::pair<int, int>> coords);
 	//GETTERS
 	inline Texture getTexture();
 	inline float getW_AR();
@@ -22,6 +24,7 @@ public:
 	inline float getCoordX();
 	inline float getCoordY();
 	inline float getHitPoints();
+	inline std::vector<std::pair<int, int>> getCoords();
 protected:
 	float speed; //entity speed
 	float wAR; 
@@ -30,15 +33,28 @@ protected:
 	float coordX;
 	float coordY;
 	float hitPoints;
+	std::vector<std::pair<int, int>> coordset;
 };
 
-inline void Entity::setAR(float wAR, float hAR) {
+inline std::vector<std::pair<int, int>> Entity::getCoords()
+{
+	return this->coordset;
+}
+
+inline void Entity::setCoords(std::vector<std::pair<int, int>> coords)
+{
+	this->coordset = coords;
+}
+
+inline void Entity::setAR(float wAR, float hAR)
+{
 	
 	this->wAR = wAR;
 	this->hAR = hAR;
 }
 
-inline float Entity::getW_AR() {
+inline float Entity::getW_AR() 
+{
 
 	return this->wAR;
 }

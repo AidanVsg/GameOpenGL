@@ -310,8 +310,11 @@ bool CreateGLWindow(char* title, int width, int height)
 	renderer.reshape(width, height,
 					currentWidth, currentHeight);	// Set Up Our Perspective GL Screen
 	renderer.init();
-	world.addEntity(NPC(250, 0, true));
-	world.addEntity(NPC(500, 0, true));
+
+	std::vector<std::pair<int, int>> NPCcoords; NPCcoords.push_back({ 0,0 }); NPCcoords.push_back({ 0,25 }); NPCcoords.push_back({ 25,25 }); NPCcoords.push_back({ 25, 0 }); NPCcoords.push_back({ 0, 0 });
+	world.addEntity(NPC(250, 0, true, NPCcoords));
+	world.addEntity(NPC(500, 0, true, NPCcoords));
+
 
 	return true;									// Success
 }
