@@ -29,6 +29,8 @@ HINSTANCE	hInstance;		// Holds The Instance Of The Application
 
 bool checkCollisions(Entity &first, Entity &second)
 {
+	Player::Collision collision = Player::Collision::NONE;
+
 	bool collideX = first.getCoordX() + first.getCoords()[3].first >= second.getCoordX() && second.getCoordX() + second.getCoords()[3].first >= first.getCoordX();
 	bool collideY = first.getCoordY() + first.getCoords()[1].second >= second.getCoordY() && second.getCoordY() + second.getCoords()[1].second >= first.getCoordY();
 
@@ -41,10 +43,30 @@ void doCollisions()
 	{
 		if (checkCollisions(player, entity))
 		{
-			player.coll = Player::Collision::COLLIDING;
-			break;
+			if (player.getCoordX() <= entity.getCoordX())
+			{		
+				 player.coll = Player::Collision::LEFT;
+				 break;
+			}
+			else //if (player.getCoordX() > entity.getCoordX())
+			{
+				player.coll = Player::Collision::RIGHT;
+				break;
+			}
+
+			if (player.getCoordY() + player.getCoords()[1].second <= entity.getCoordY() + entity.getCoords()[1].second)
+			{
+				player.coll = Player::Collision::BOTTOM;
+				break;
+			}
+			else //if (player.getCoordY() + player.getCoords()[1].second > entity.getCoordY() + entity.getCoords()[1].second)
+			{
+				player.coll = Player::Collision::TOP;
+				break;
+			}
 		}
-		player.coll = Player::Collision::NO_COLLISION;
+		player.coll = Player::Collision::NONE;
+	
 	}
 }
 

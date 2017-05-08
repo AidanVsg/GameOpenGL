@@ -8,6 +8,7 @@
 class Player : public Entity {
 private:
 	float initialCoordY;
+	bool onFloor;
 public:	
 	bool keys[256];
 
@@ -18,24 +19,21 @@ public:
 	};
 	JumpState state;
 	enum Collision{
-		COLLIDING,
-		NO_COLLISION
-	};
-	Collision coll;
-	enum LastCall {
+		TOP,
+		BOTTOM,
 		RIGHT,
 		LEFT,
-		JUMP,
 		NONE
 	};
-	LastCall lcall;
-	
+	Collision coll;
+
 	void processKeys();
 	Player();
 	void moveRight();
 	void moveLeft();
 	void jump();
 	void checkJumpState();
+	void checkFloor();
 };
 
 #endif  //_PLAYER_H

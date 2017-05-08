@@ -34,8 +34,8 @@ Player::Player()
 	this->coordY = 0.0f;
 	this->hitPoints = 0.0f;
 	this->state = JumpState::ON_GROUND;
-	this->coll = Collision::NO_COLLISION;
-	this->lcall = LastCall::NONE;
+	this->coll = Collision::NONE;
+
 	this->speed = 0.33; //TODO add momentum
 
 	this->coordset.push_back({ 0,0 });
@@ -44,9 +44,17 @@ Player::Player()
 	this->coordset.push_back({ 50,0 });
 }
 
+//void Player::checkFloor()
+//{
+//	if ()
+//	{
+//
+//	}
+//}
+
 void Player::moveRight()
 {
-	if (coll == Collision::COLLIDING && lcall == LastCall::RIGHT)
+	if (coll == Collision::LEFT)
 	{
 		setCoordX(getCoordX());
 	}
@@ -55,12 +63,12 @@ void Player::moveRight()
 		setCoordX(getCoordX() + (speed*wAR));
 	}
 
-	lcall = LastCall::RIGHT;
+	//lcall = LastCall::RIGHT;
 }
 
 void Player::moveLeft()
 {
-	if (coll == Collision::COLLIDING && lcall == LastCall::LEFT)
+	if (coll == Collision::RIGHT)
 	{
 		setCoordX(getCoordX());
 	}
@@ -69,22 +77,19 @@ void Player::moveLeft()
 		setCoordX(getCoordX() - (speed*wAR));
 	}
 
-	lcall = LastCall::LEFT;
+	//lcall = LastCall::LEFT;
 }
 
 void Player::jump()
 {
-	initialCoordY = getCoordY();
-	if (coll == Collision::COLLIDING && lcall == LastCall::JUMP)
+
+	if (state == JumpState::ON_GROUND)
 	{
-		this->state = JumpState::ON_GROUND;
-	}
-	else
-	{
-		if (state == JumpState::ON_GROUND) this->state = JumpState::JUMPING;
+		this->state = JumpState::JUMPING;
+		this->initialCoordY = getCoordY();
 	}
 
-	lcall = LastCall::JUMP;
+	//lcall = LastCall::JUMP;
 }
 
 void Player::checkJumpState()
@@ -93,9 +98,9 @@ void Player::checkJumpState()
 	case JumpState::ON_GROUND: break;
 	case JumpState::JUMPING: 
 
-		if (getCoordY() < 80) 
+		if (getCoordY() < initialCoordY+80  && coll != Collision::BOTTOM ) 
 		{
-			setCoordY(getCoordY() + (speed*hAR));
+				setCoordY(getCoordY() + (speed*hAR));			
 		}
 		else 
 		{
@@ -105,14 +110,22 @@ void Player::checkJumpState()
 		break;
 	case JumpState::FALLING: 
 
-		if (getCoordY() > 0) 
+		if (getCoordY() > initialCoordY) 
 		{
-			setCoordY(getCoordY() - (speed*hAR));
+			if (coll == Collision::TOP)
+			{
+				this->state = JumpState::ON_GROUND;
+				break;
+			}
+			else
+			{
+				setCoordY(getCoordY() - (speed*hAR));
+			}
+				
 		}
 		else
 		{
-			if (getCoordY() < 0) setCoordY(0.0);
-			this->state = JumpState::ON_GROUND;
+			 this->state = JumpState::ON_GROUND;
 		}
 
 		break;
