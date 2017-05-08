@@ -1,10 +1,6 @@
 #include "../Object/Headers/Player.h"
 
-enum class Player::JumpState {
-	ON_GROUND,
-	JUMPING,
-	FALLING
-};
+
 
 void Player::processKeys()
 {
@@ -38,28 +34,57 @@ Player::Player()
 	this->coordY = 0.0f;
 	this->hitPoints = 0.0f;
 	this->state = JumpState::ON_GROUND;
+	this->coll = Collision::NO_COLLISION;
+	this->lcall = LastCall::NONE;
 	this->speed = 0.33; //TODO add momentum
 
 	this->coordset.push_back({ 0,0 });
-	this->coordset.push_back({ 25,50 });
-	this->coordset.push_back({ 50,0 });
+	this->coordset.push_back({ 0,50 });
+	this->coordset.push_back({ 50,50 });
 	this->coordset.push_back({ 50,0 });
 }
 
 void Player::moveRight()
 {
-	setCoordX(getCoordX() + (speed*wAR));
+	if (coll == Collision::COLLIDING && lcall == LastCall::RIGHT)
+	{
+		setCoordX(getCoordX());
+	}
+	else
+	{
+		setCoordX(getCoordX() + (speed*wAR));
+	}
+
+	lcall = LastCall::RIGHT;
 }
 
 void Player::moveLeft()
 {
-	setCoordX(getCoordX() - (speed*wAR));
+	if (coll == Collision::COLLIDING && lcall == LastCall::LEFT)
+	{
+		setCoordX(getCoordX());
+	}
+	else
+	{
+		setCoordX(getCoordX() - (speed*wAR));
+	}
+
+	lcall = LastCall::LEFT;
 }
 
 void Player::jump()
 {
 	initialCoordY = getCoordY();
-	if(state==JumpState::ON_GROUND) this->state = JumpState::JUMPING;
+	if (coll == Collision::COLLIDING && lcall == LastCall::JUMP)
+	{
+		this->state = JumpState::ON_GROUND;
+	}
+	else
+	{
+		if (state == JumpState::ON_GROUND) this->state = JumpState::JUMPING;
+	}
+
+	lcall = LastCall::JUMP;
 }
 
 void Player::checkJumpState()

@@ -11,8 +11,25 @@ private:
 public:	
 	bool keys[256];
 
-	enum class JumpState;
+	enum JumpState{
+		ON_GROUND,
+		JUMPING,
+		FALLING
+	};
 	JumpState state;
+	enum Collision{
+		COLLIDING,
+		NO_COLLISION
+	};
+	Collision coll;
+	enum LastCall {
+		RIGHT,
+		LEFT,
+		JUMP,
+		NONE
+	};
+	LastCall lcall;
+	
 	void processKeys();
 	Player();
 	void moveRight();

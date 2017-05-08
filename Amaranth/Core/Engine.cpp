@@ -14,6 +14,8 @@ World world;
 GLuint currentWidth = 800, currentHeight = 600;
 GLuint targetWidth = 800, targetHeight = 600;
 
+bool checkCollisions(Entity &first, Entity &second);
+void doCollisions();
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc
 void KillGLWindow();									// releases and destroys the window
 bool CreateGLWindow(char* title, int width, int height); //creates the window
@@ -25,6 +27,26 @@ HGLRC		hRC = NULL;		// Permanent Rendering Context
 HWND		hWnd = NULL;		// Holds Our Window Handle
 HINSTANCE	hInstance;		// Holds The Instance Of The Application
 
+bool checkCollisions(Entity &first, Entity &second)
+{
+	bool collideX = first.getCoordX() + first.getCoords()[3].first >= second.getCoordX() && second.getCoordX() + second.getCoords()[3].first >= first.getCoordX();
+	bool collideY = first.getCoordY() + first.getCoords()[1].second >= second.getCoordY() && second.getCoordY() + second.getCoords()[1].second >= first.getCoordY();
+
+	return collideX && collideY;
+}
+
+void doCollisions()
+{
+	for (auto entity : world.getEntities())
+	{
+		if (checkCollisions(player, entity))
+		{
+			player.coll = Player::Collision::COLLIDING;
+			break;
+		}
+		player.coll = Player::Collision::NO_COLLISION;
+	}
+}
 
 							/******************* WIN32 FUNCTIONS ***************************/
 int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
@@ -69,8 +91,11 @@ int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
 
 				player.setAR((GLfloat)currentWidth / (GLfloat)targetWidth,
 					(GLfloat) currentHeight / (GLfloat) targetHeight);
+				
 				player.checkJumpState();
+				
 				player.processKeys();								//process keyboard		
+				doCollisions();
 
 				renderer.display(player, world);					// Draw The Scene
 
