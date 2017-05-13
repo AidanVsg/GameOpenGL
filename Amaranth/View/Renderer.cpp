@@ -1,7 +1,9 @@
+
 #include "../View/Headers/Renderer.h"
 
 void Renderer::display(Player p, World world)
 {
+
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glLoadIdentity();
@@ -15,20 +17,22 @@ void Renderer::display(Player p, World world)
 
 	//_world.addEntity(_player); //TODO objects in list
 	//player.setCoordX(0);
-	drawEntity(p, p.getCoords());
+
+	drawEntity(p);
 
 	for (Entity e : world.getEntities())
 	{
-		drawEntity(e, e.getCoords());
+		drawEntity(e);
 	}
 	
 
 	glFlush();
-}
 
-void Renderer::reshape(int width, int height, int currentWidth, int currentHeight)
+}
+void Renderer::reshape(int width, int height, Player p)
 {
-	currentWidth = width; currentHeight = height;           // to ensure the mouse coordinates match 
+	const float c = 270.0f;
+         // to ensure the mouse coordinates match 
 															// we will use these values to set the coordinate system
 
 	glViewport(0, 0, width, height);						// Reset the current viewport
@@ -36,7 +40,24 @@ void Renderer::reshape(int width, int height, int currentWidth, int currentHeigh
 	glMatrixMode(GL_PROJECTION);						// select the projection matrix stack
 	glLoadIdentity();									// reset the top of the projection matrix to an identity matrix
 
-	gluOrtho2D(0, currentWidth, 0, currentHeight);           // set the coordinate system for the window
+	gluOrtho2D(p.GetCoordinate().x - c, p.GetCoordinate().x + c, 
+				p.GetCoordinate().y - c, p.GetCoordinate().y + c);           // set the coordinate system for the window
+
+	glMatrixMode(GL_MODELVIEW);							// Select the modelview matrix stack
+	glLoadIdentity();									// Reset the top of the modelview matrix to an identity matrix
+}
+
+void Renderer::reshape(int width, int height)
+{
+       // to ensure the mouse coordinates match 
+															// we will use these values to set the coordinate system
+	
+	glViewport(0, 0, width, height);						// Reset the current viewport
+
+	glMatrixMode(GL_PROJECTION);						// select the projection matrix stack
+	glLoadIdentity();									// reset the top of the projection matrix to an identity matrix
+
+	gluOrtho2D(0, width, 0, height);           // set the coordinate system for the window
 
 	glMatrixMode(GL_MODELVIEW);							// Select the modelview matrix stack
 	glLoadIdentity();									// Reset the top of the modelview matrix to an identity matrix
@@ -49,25 +70,26 @@ void Renderer::init()
 															//will clear the buffer to this colour.
 }
 
-void Renderer::update()
-{
-	//spin += speed;
-	//if (spin > 360)
-	//spin = 0;
-}
-
-void Renderer::drawEntity(Entity entity, std::vector<std::pair<int,int>> coordset)
+void Renderer::drawEntity(Entity entity)
 {
 	glPushMatrix();
-		glTranslatef(entity.getCoordX(), entity.getCoordY(), 0.0);
+		glTranslatef(entity.GetCoordinate().x, entity.GetCoordinate().y, 0.0);
 		glBegin(GL_POLYGON);
-		for (auto coords : coordset) {
-			int x = coords.first;
-			int y = coords.second;
 
-			glVertex2f(x, y);
 
-		}
+		//for (auto coords : coordset) {
+		//	int x = coords.first;
+		//	int y = coords.second;
+
+		//	glVertex2f(x, y);
+		//}
+		glVertex2f(0.0f, 0.0f); 
+		glVertex2f(0.0f, entity.GetLength().y); 
+		glVertex2f(entity.GetLength().x, entity.GetLength().y); 
+		glVertex2f(entity.GetLength().x, 0.0f);
+
+		//glVertex2f(entity.GetCoordinate().x, entity.GetCoordinate().y);
+
 			
 
 		glEnd();
@@ -75,4 +97,5 @@ void Renderer::drawEntity(Entity entity, std::vector<std::pair<int,int>> coordse
 
 
 }
+
 

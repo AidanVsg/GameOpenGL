@@ -1,21 +1,27 @@
 #include <windows.h>		// Header file for Windows
 #include <iostream>
-#include <gl\gl.h>			// Header file for the OpenGL32 Library
+#include "../glew/include/GL/glew.h"			// Header file for the OpenGL32 Library
 #include "../View/Headers/Renderer.h"
 #include "../Object/Headers/NPC.h"
 #include "../Object/Headers/Player.h"
 #include "../Object/Headers/World.h"
-#include <ctime>
+#include "../View/Headers/Texture.h"
 
-Player player;
+#include "../glm/glm/glm.hpp"
+#include "../glm/glm/gtc/matrix_transform.hpp"
+#include "../glm/glm/gtc/type_ptr.hpp"
+
+Player player(glm::vec2(0.0f,60.0f),glm::vec2(25.0f,25.0f), glm::vec2(0.13f,0.08f) , Texture(), 80.0f);
 Renderer renderer;
 World world;
 
 GLuint currentWidth = 800, currentHeight = 600;
 GLuint targetWidth = 800, targetHeight = 600;
 
-bool checkCollisions(Entity &first, Entity &second);
 void doCollisions();
+void update();
+void render(int width, int height);
+void populateWorld();
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc
 void KillGLWindow();									// releases and destroys the window
 bool CreateGLWindow(char* title, int width, int height); //creates the window
@@ -27,49 +33,51 @@ HGLRC		hRC = NULL;		// Permanent Rendering Context
 HWND		hWnd = NULL;		// Holds Our Window Handle
 HINSTANCE	hInstance;		// Holds The Instance Of The Application
 
-bool checkCollisions(Entity &first, Entity &second)
+void update()
 {
-	Player::Collision collision = Player::Collision::NONE;
+	player.SetWidthAR((GLfloat)currentWidth / (GLfloat)targetWidth);
+	player.SetHeightAR((GLfloat)currentHeight / (GLfloat)targetHeight);
 
-	bool collideX = first.getCoordX() + first.getCoords()[3].first >= second.getCoordX() && second.getCoordX() + second.getCoords()[3].first >= first.getCoordX();
-	bool collideY = first.getCoordY() + first.getCoords()[1].second >= second.getCoordY() && second.getCoordY() + second.getCoords()[1].second >= first.getCoordY();
+	
+	player.checkJumpState();
+	player.processKeys();								//process keyboard		
+	doCollisions();													//doCollisions();
 
-	return collideX && collideY;
+	renderer.reshape(currentWidth, currentHeight, player);
+	renderer.display(player, world);					// Draw The Scene
+}
+
+void render(int width, int height)
+{
+	renderer.reshape(width, height, player);	// Set Up Our Perspective GL Screen
+	renderer.init();
 }
 
 void doCollisions()
 {
-	for (auto entity : world.getEntities())
+	for (Entity e : world.getEntities())
 	{
-		if (checkCollisions(player, entity))
+		if (player.checkCollision(e))
 		{
-			if (player.getCoordX() <= entity.getCoordX())
-			{		
-				 player.coll = Player::Collision::LEFT;
-				 break;
-			}
-			else //if (player.getCoordX() > entity.getCoordX())
-			{
-				player.coll = Player::Collision::RIGHT;
-				break;
-			}
-
-			if (player.getCoordY() + player.getCoords()[1].second <= entity.getCoordY() + entity.getCoords()[1].second)
-			{
-				player.coll = Player::Collision::BOTTOM;
-				break;
-			}
-			else //if (player.getCoordY() + player.getCoords()[1].second > entity.getCoordY() + entity.getCoords()[1].second)
-			{
-				player.coll = Player::Collision::TOP;
-				break;
-			}
+			player.direction = player.collisionSide(e);
+			break;
 		}
-		player.coll = Player::Collision::NONE;
-	
+		else
+		{
+			player.direction = Player::Direction::NONE;
+		}
 	}
 }
 
+void populateWorld()
+{
+	world.addEntity(Entity(glm::vec2(0.0f, 0.0f), glm::vec2(600.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture()));
+	world.addEntity(Entity(glm::vec2(300.0f, 50.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
+	world.addEntity(Entity(glm::vec2(400.0f, 80.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
+	//std::vector<std::pair<int, int>> NPCcoords; NPCcoords.push_back({ 0,0 }); NPCcoords.push_back({ 0,25 }); NPCcoords.push_back({ 25,25 }); NPCcoords.push_back({ 25, 0 }); NPCcoords.push_back({ 0, 0 });
+	//world.addEntity(NPC(250, 0, true, NPCcoords));
+	//world.addEntity(NPC(500, 0, true, NPCcoords));
+}
 							/******************* WIN32 FUNCTIONS ***************************/
 int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
 	HINSTANCE	hPrevInstance,		// Previous Instance
@@ -108,18 +116,7 @@ int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
 		else										// If There Are No Messages
 		{
 				if (player.keys[VK_ESCAPE]) done = true;
-
-				
-
-				player.setAR((GLfloat)currentWidth / (GLfloat)targetWidth,
-					(GLfloat) currentHeight / (GLfloat) targetHeight);
-				
-				player.checkJumpState();
-				
-				player.processKeys();								//process keyboard		
-				doCollisions();
-
-				renderer.display(player, world);					// Draw The Scene
+				update();
 
 				SwapBuffers(hDC);							// Swap Buffers (Double Buffering)
 			
@@ -148,12 +145,9 @@ LRESULT CALLBACK WndProc(HWND	hWnd,			// Handle For This Window
 
 	case WM_SIZE:								// Resize The OpenGL Window
 	{
-		renderer.reshape(LOWORD(lParam), HIWORD(lParam), currentWidth, currentHeight);  // LoWord=Width, HiWord=Height
-		if (LOWORD(lParam) >= targetWidth && HIWORD(lParam) >= targetHeight)
-		{	
-			currentWidth = LOWORD(lParam);
-			currentHeight = HIWORD(lParam);
-		}
+		renderer.reshape(LOWORD(lParam), HIWORD(lParam), player);  // LoWord=Width, HiWord=Height
+		if (LOWORD(lParam) >= targetWidth) 	currentWidth = LOWORD(lParam);
+		if(HIWORD(lParam) >= targetHeight) currentHeight = HIWORD(lParam);
 		
 		return 0;								// Jump Back
 	}
@@ -353,15 +347,8 @@ bool CreateGLWindow(char* title, int width, int height)
 	SetForegroundWindow(hWnd);						// Slightly Higher Priority
 	SetFocus(hWnd);									// Sets Keyboard Focus To The Window
 
-	
-	renderer.reshape(width, height,
-					currentWidth, currentHeight);	// Set Up Our Perspective GL Screen
-	renderer.init();
-
-	std::vector<std::pair<int, int>> NPCcoords; NPCcoords.push_back({ 0,0 }); NPCcoords.push_back({ 0,25 }); NPCcoords.push_back({ 25,25 }); NPCcoords.push_back({ 25, 0 }); NPCcoords.push_back({ 0, 0 });
-	world.addEntity(NPC(250, 0, true, NPCcoords));
-	world.addEntity(NPC(500, 0, true, NPCcoords));
-
+	render(width, height);
+	populateWorld();
 
 	return true;									// Success
 }

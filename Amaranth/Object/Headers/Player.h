@@ -2,38 +2,36 @@
 #define _PLAYER_H
 
 #include "../Object/Headers/Entity.h"
-#include "windows.h"
-#include <iostream>
+#include <windows.h>
 
 class Player : public Entity {
-private:
-	float initialCoordY;
-	bool onFloor;
-public:	
-	bool keys[256];
-
-	enum JumpState{
+public:
+	Player();
+	Player(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, Texture tex, float jumpH);
+	enum JumpState {
 		ON_GROUND,
 		JUMPING,
 		FALLING
 	};
-	JumpState state;
-	enum Collision{
-		TOP,
-		BOTTOM,
+
+	enum Direction {
+		UP,
 		RIGHT,
+		DOWN,
 		LEFT,
 		NONE
 	};
-	Collision coll;
 
-	void processKeys();
-	Player();
-	void moveRight();
-	void moveLeft();
-	void jump();
-	void checkJumpState();
-	void checkFloor();
+	Direction direction;
+	JumpState state;
+
+	bool keys[256];
+
+	bool checkCollision(Entity &second);
+	Direction collisionSide(Entity &e);
+	void resetCollisions(), processKeys(), moveRight(), moveLeft(), jump(), checkJumpState(), checkFloor();
+private:
+	float initialCoordY, jumpHeight;
 };
 
 #endif  //_PLAYER_H

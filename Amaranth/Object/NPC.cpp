@@ -1,9 +1,9 @@
 #include "../Object/Headers/NPC.h"
 
-NPC::NPC(float coordX, float coordY, bool isAlly, std::vector<std::pair<int, int>> coords)
-{
-	this->coordX = coordX;
-	this->coordY = coordY;
-	this->isAlly = isAlly;
-	this->coordset = coords;
-}
+NPC::NPC() : Entity(), isAlly(false)
+{ }
+
+NPC::NPC(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, Texture tex,
+	bool ally)
+	: Entity(coords, len, vel, tex), isAlly(ally)
+{ }

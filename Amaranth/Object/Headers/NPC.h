@@ -7,7 +7,8 @@ class NPC : public Entity {
 private:
 	bool isAlly;
 public:
-	NPC(float coordX, float coordY, bool isAlly, std::vector<std::pair<int, int>> coords);
+	NPC();
+	NPC(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, Texture tex, bool ally);
 };
 
 #endif  //_NPC_H
