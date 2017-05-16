@@ -1,23 +1,8 @@
-#include "../Object/Headers/Player.h"
+﻿#include "../Object/Headers/Player.h"
 #include <iostream>
 
 Player::Player() : Entity(), jumpHeight(0.0f), state(JumpState::FALLING), direction(Direction::NONE)
 { }
-//this->wAR = 1;
-//this->hAR = 1;
-//this->coordX = 0.0f;
-//this->coordY = 10.0f;
-//this->hitPoints = 0.0f;
-//this->state = JumpState::ON_GROUND;
-
-//this->speed = 0.45; //TODO add momentum
-//this->jumpHeight = 150;
-
-//this->coordset.push_back({ 0,0 });
-//this->coordset.push_back({ 0,50 });
-//this->coordset.push_back({ 50,50 });
-//this->coordset.push_back({ 50,0 });
-
 
 Player::Player(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, Texture tex,
 	float jumpH)
@@ -26,27 +11,27 @@ Player::Player(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, Texture tex,
 
 void Player::processKeys()
 {
-	if (keys[VK_UP] || keys[0x57]) {
-
+	if (keys[VK_UP] || keys[0x57])
+	{
 		jump();
-		/*std::cout << "up: " << getCoordY() << std::endl;*/
+		std::cout << "Har: " << heightAR << std::endl;
+	}
+	if (keys[VK_DOWN] || keys[0x53])
+	{
 
 	}
-	if (keys[VK_DOWN] || keys[0x53]) {
-
-		//TODO crouch/go down
-	}
-	if (keys[VK_LEFT] || keys[0x41]) {
-
+	if (keys[VK_LEFT] || keys[0x41]) 
+	{
 		moveLeft();
+		std::cout << "ar: " << widthAR << std::endl;
 		/*std::cout << "left: " << Get_x() << std::endl;
 		std::cout << "left: " << getW_AR() << std::endl;*/
 	}
-	if (keys[VK_RIGHT] || keys[0x44]) {
+	if (keys[VK_RIGHT] || keys[0x44])
+	{
 
 		moveRight();
 		std::cout << "ar: " << widthAR << std::endl;
-		/*std::cout << "right: " << getCoordX() << std::endl;*/
 	}
 }
 
@@ -58,10 +43,7 @@ bool Player::checkCollision(Entity &e)
 	return on_x && on_y;
 }
 
-void Player::resetCollisions()
-{
-	direction = Direction::NONE;
-}
+void Player::resetCollisions(){ direction = Direction::NONE;}
 
 Player::Direction Player::collisionSide(Entity &e)
 {
@@ -98,24 +80,9 @@ Player::Direction Player::collisionSide(Entity &e)
 	return (Direction)best_match;
 }
 
-void Player::moveRight()
-{
-	if (direction != Direction::LEFT)
-	{
-		coordinate.x = coordinate.x + (velocity.x*widthAR);
-	}
+void Player::moveRight(){ if (direction != Direction::LEFT) coordinate.x = coordinate.x + (velocity.x*widthAR);}
 
-	//lcall = LastCall::RIGHT;
-}
-
-void Player::moveLeft()
-{
-	if (direction != Direction::RIGHT)
-	{
-		coordinate.x = coordinate.x - (velocity.x*widthAR);
-	}
-	//lcall = LastCall::LEFT;
-}
+void Player::moveLeft(){ if (direction != Direction::RIGHT) coordinate.x = coordinate.x - (velocity.x*widthAR);}
 
 void Player::jump()
 {
@@ -126,15 +93,19 @@ void Player::jump()
 	}
 }
 
-void Player::checkJumpState()
+void Player::checkJumpState(float dt)
 {
+
+	float g = -9.81; float frac = 0.95;
+	float v_old, s_old, fc;
+	double ndt;
+
+	v_old = velocity.y;
+	s_old = coordinate.y;
+
 	switch (state) {
 	case JumpState::ON_GROUND:
-		//if (!collidingTop)
-		//{
-		//	state = JumpState::FALLING;
-		//	initialCoordY = 0.0;
-		//}
+
 		if (direction != Direction::UP)
 		{
 			state = JumpState::FALLING;
@@ -142,10 +113,24 @@ void Player::checkJumpState()
 		}
 		break;
 	case JumpState::JUMPING:
-
 		if (coordinate.y < initialCoordY + jumpHeight  && direction != Direction::DOWN)
 		{
-			coordinate.y = coordinate.y + (velocity.y*heightAR);
+			velocity.y = v_old + g*dt;
+			coordinate.y = s_old + ((v_old + velocity.y) / 2.0)*dt; // Use improved Euler Integration
+
+			if (coordinate.y < initialCoordY)
+			{
+				fc =  (s_old - coordinate.y) / s_old ; // Find point of collision
+				ndt = fc*dt;			 // Calculate remaining timestep
+				velocity.y = v_old + g*ndt;  // Reintegrate
+				coordinate.y = s_old + (((v_old + velocity.y) / 2.0)*ndt);
+				velocity.y = -velocity.y;
+				//coordinate.y = initialCoordY;
+				state = JumpState::ON_GROUND;
+			}
+				
+			//coordinate.y = coordinate.y + (velocity.y*heightAR);
+
 		}
 		else
 		{
@@ -163,15 +148,20 @@ void Player::checkJumpState()
 			}
 			else
 			{
-				coordinate.y = coordinate.y - (velocity.y*heightAR);
+				velocity.y = v_old + g*0.01;
+				coordinate.y = s_old + ((v_old + velocity.y) / 2.0)*0.01; // Use improved Euler Integration
+
+
+				//coordinate.y = coordinate.y - (velocity.y*heightAR);
 			}
 
 		}
 		else
 		{
+
 			if (direction != Direction::DOWN)
 			{
-				initialCoordY = 0.0f;
+				initialCoordY = -15.0f;
 			}
 			else
 			{

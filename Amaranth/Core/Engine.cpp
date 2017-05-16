@@ -11,13 +11,17 @@
 #include "../glm/glm/gtc/matrix_transform.hpp"
 #include "../glm/glm/gtc/type_ptr.hpp"
 
-Player player(glm::vec2(0.0f,60.0f),glm::vec2(25.0f,25.0f), glm::vec2(0.13f,0.08f) , Texture(), 80.0f);
+Player player(glm::vec2(0.0f,120.0f),glm::vec2(25.0f,25.0f), glm::vec2(0.13f,1.5f) , Texture(), 80.0f);
 Renderer renderer;
 World world;
 
 GLuint currentWidth = 800, currentHeight = 600;
 GLuint targetWidth = 800, targetHeight = 600;
+__int64 prevTime = 0;
+double timerFrequencyRecip = 0.000003;
+float deltaT;
 
+void timeSimulation();
 void doCollisions();
 void update();
 void render(int width, int height);
@@ -36,11 +40,13 @@ HINSTANCE	hInstance;		// Holds The Instance Of The Application
 void update()
 {
 	player.SetWidthAR((GLfloat)currentWidth / (GLfloat)targetWidth);
-	player.SetHeightAR((GLfloat)currentHeight / (GLfloat)targetHeight);
+	player.SetHeightAR(((GLfloat)currentHeight / (GLfloat)targetHeight)*1.5);
 
 	
-	player.checkJumpState();
+	
 	player.processKeys();								//process keyboard		
+	timeSimulation();
+	//player.checkJumpState(deltaT);
 	doCollisions();													//doCollisions();
 
 	renderer.reshape(currentWidth, currentHeight, player);
@@ -77,6 +83,21 @@ void populateWorld()
 	//std::vector<std::pair<int, int>> NPCcoords; NPCcoords.push_back({ 0,0 }); NPCcoords.push_back({ 0,25 }); NPCcoords.push_back({ 25,25 }); NPCcoords.push_back({ 25, 0 }); NPCcoords.push_back({ 0, 0 });
 	//world.addEntity(NPC(250, 0, true, NPCcoords));
 	//world.addEntity(NPC(500, 0, true, NPCcoords));
+}
+
+void timeSimulation()
+{
+	// Get the current time
+	LARGE_INTEGER t;
+	QueryPerformanceCounter(&t);
+	__int64 currentTime = t.QuadPart;
+
+	__int64 ticksElapsed = currentTime - prevTime;					// Ticks elapsed since the previous time step
+	double deltaT = double(ticksElapsed) * timerFrequencyRecip;		// Convert to second
+																	//cout << ticksElapsed << " " << deltaT << endl;
+	player.checkJumpState(deltaT);
+	// Advance timer
+	prevTime = currentTime;					// use the current time as the previous time in the next step
 }
 							/******************* WIN32 FUNCTIONS ***************************/
 int WINAPI WinMain(HINSTANCE	hInstance,			// Instance

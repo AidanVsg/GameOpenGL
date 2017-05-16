@@ -29,7 +29,7 @@ public:
 
 	bool checkCollision(Entity &second);
 	Direction collisionSide(Entity &e);
-	void resetCollisions(), processKeys(), moveRight(), moveLeft(), jump(), checkJumpState(), checkFloor();
+	void resetCollisions(), processKeys(), moveRight(), moveLeft(), jump(), checkJumpState(float dt), checkFloor();
 private:
 	float initialCoordY, jumpHeight;
 };
