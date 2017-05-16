@@ -11,17 +11,17 @@
 #include "../glm/glm/gtc/matrix_transform.hpp"
 #include "../glm/glm/gtc/type_ptr.hpp"
 
-Player player(glm::vec2(0.0f,120.0f),glm::vec2(25.0f,25.0f), glm::vec2(0.13f,1.5f) , Texture(), 80.0f);
+Player player(glm::vec2(0.0f,80.0f),glm::vec2(25.0f,25.0f), glm::vec2(0.13f,15.0f) , Texture(), 50.0f);
 Renderer renderer;
 World world;
 
 GLuint currentWidth = 800, currentHeight = 600;
 GLuint targetWidth = 800, targetHeight = 600;
-__int64 prevTime = 0;
 double timerFrequencyRecip = 0.000003;
 float deltaT;
+__int64 prevTime;
 
-void timeSimulation();
+double timeSimulation();
 void doCollisions();
 void update();
 void render(int width, int height);
@@ -43,11 +43,11 @@ void update()
 	player.SetHeightAR(((GLfloat)currentHeight / (GLfloat)targetHeight)*1.5);
 
 	
-	
-	player.processKeys();								//process keyboard		
-	timeSimulation();
-	//player.checkJumpState(deltaT);
-	doCollisions();													//doCollisions();
+												
+	player.processKeys();//process keyboard										
+	doCollisions();//doCollisions();
+	player.checkJumpState(timeSimulation());
+
 
 	renderer.reshape(currentWidth, currentHeight, player);
 	renderer.display(player, world);					// Draw The Scene
@@ -65,12 +65,12 @@ void doCollisions()
 	{
 		if (player.checkCollision(e))
 		{
-			player.direction = player.collisionSide(e);
+			player.collision = player.collisionSide(e);
 			break;
 		}
 		else
 		{
-			player.direction = Player::Direction::NONE;
+			player.collision = Player::CollisionSides(Player::Direction::NONE, Player::Direction::NONE);
 		}
 	}
 }
@@ -80,12 +80,14 @@ void populateWorld()
 	world.addEntity(Entity(glm::vec2(0.0f, 0.0f), glm::vec2(600.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture()));
 	world.addEntity(Entity(glm::vec2(300.0f, 50.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
 	world.addEntity(Entity(glm::vec2(400.0f, 80.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
+	world.addEntity(Entity(glm::vec2(600.0f, 0.0f), glm::vec2(25.0f, 600.0f), glm::vec2(0.08f, 0.033f), Texture()));
+
 	//std::vector<std::pair<int, int>> NPCcoords; NPCcoords.push_back({ 0,0 }); NPCcoords.push_back({ 0,25 }); NPCcoords.push_back({ 25,25 }); NPCcoords.push_back({ 25, 0 }); NPCcoords.push_back({ 0, 0 });
 	//world.addEntity(NPC(250, 0, true, NPCcoords));
 	//world.addEntity(NPC(500, 0, true, NPCcoords));
 }
 
-void timeSimulation()
+double timeSimulation()
 {
 	// Get the current time
 	LARGE_INTEGER t;
@@ -95,9 +97,10 @@ void timeSimulation()
 	__int64 ticksElapsed = currentTime - prevTime;					// Ticks elapsed since the previous time step
 	double deltaT = double(ticksElapsed) * timerFrequencyRecip;		// Convert to second
 																	//cout << ticksElapsed << " " << deltaT << endl;
-	player.checkJumpState(deltaT);
+	
 	// Advance timer
 	prevTime = currentTime;					// use the current time as the previous time in the next step
+	return deltaT;
 }
 							/******************* WIN32 FUNCTIONS ***************************/
 int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
@@ -119,6 +122,7 @@ int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
 		return 0;									// Quit If Window Was Not Created
 	}
 
+	prevTime = 0;
 
 	while (!done)									// Loop That Runs While done=FALSE
 	{

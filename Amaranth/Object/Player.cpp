@@ -1,13 +1,18 @@
 ﻿#include "../Object/Headers/Player.h"
 #include <iostream>
 
-Player::Player() : Entity(), jumpHeight(0.0f), state(JumpState::FALLING), direction(Direction::NONE)
+Player::Player() : Entity(), jumpHeight(0.0f), state(JumpState::FALLING), direction(Direction::NONE), initialVelocity(velocity)
 { }
 
 Player::Player(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, Texture tex,
 	float jumpH)
-	: Entity(coords, len, vel, tex), state(JumpState::FALLING), direction(Direction::NONE), jumpHeight(jumpH)
+	: Entity(coords, len, vel, tex), state(JumpState::FALLING), direction(Direction::NONE), jumpHeight(jumpH), initialVelocity(velocity), collision(Direction::NONE, Direction::NONE)
 { }
+
+//Player::~Player()
+//{
+//	delete(this);
+//}
 
 void Player::processKeys()
 {
@@ -29,7 +34,6 @@ void Player::processKeys()
 	}
 	if (keys[VK_RIGHT] || keys[0x44])
 	{
-
 		moveRight();
 		std::cout << "ar: " << widthAR << std::endl;
 	}
@@ -45,8 +49,10 @@ bool Player::checkCollision(Entity &e)
 
 void Player::resetCollisions(){ direction = Direction::NONE;}
 
-Player::Direction Player::collisionSide(Entity &e)
+Player::CollisionSides Player::collisionSide(Entity &e)
 {
+	CollisionSides newCollision(NONE, NONE);
+
 	glm::vec2 pHalf(length.x / 2, length.y / 2);
 	glm::vec2 pCenter(coordinate.x + pHalf.x, coordinate.y + pHalf.y);
 
@@ -59,7 +65,7 @@ Player::Direction Player::collisionSide(Entity &e)
 
 	difference = pCenter - closest;
 
-	glm::vec2 compass[] = {
+	glm::vec2 directions[] = {
 
 		glm::vec2(0.0f, 1.0f), // up
 		glm::vec2(1.0f, 0.0f), // right
@@ -70,40 +76,118 @@ Player::Direction Player::collisionSide(Entity &e)
 	int best_match = 5;
 	for (int i = 0; i < 4; i++)
 	{
-		float dot_product = glm::dot(glm::normalize(difference), compass[i]);
+		float dot_product = glm::dot(glm::normalize(difference), directions[i]);
 		if (dot_product > max)
 		{
 			max = dot_product;
 			best_match = i;
 		}
 	}
-	return (Direction)best_match;
+
+	if (best_match == 1 || best_match == 3)
+	{
+		newCollision.first = (Direction)best_match;
+	}
+	else
+	{
+		newCollision.second = (Direction)best_match;
+	}
+
+	return newCollision;
 }
 
-void Player::moveRight(){ if (direction != Direction::LEFT) coordinate.x = coordinate.x + (velocity.x*widthAR);}
+void Player::moveRight(){ if (collision.first != Direction::LEFT) coordinate.x += velocity.x*widthAR;}
 
-void Player::moveLeft(){ if (direction != Direction::RIGHT) coordinate.x = coordinate.x - (velocity.x*widthAR);}
+void Player::moveLeft(){ if (collision.first != Direction::RIGHT) coordinate.x -= velocity.x*widthAR;}
 
 void Player::jump()
 {
+
 	if (state == JumpState::ON_GROUND)
 	{
 		initialCoordY = coordinate.y;
-		this->state = JumpState::JUMPING;
+		//this->state = JumpState::JUMPING;
+		state = JUMPING;
+
 	}
 }
 
 void Player::checkJumpState(float dt)
 {
 
+
+	if (dt > 0.15f) dt = 0.15f;
+		
+
 	float g = -9.81; float frac = 0.95;
 	float v_old, s_old, fc;
 	double ndt;
 
+	if (collision.second == UP)
+	{
+		initialCoordY = coordinate.y;
+		//velocity.y = initialVelocity.y;
+	}
+
 	v_old = velocity.y;
 	s_old = coordinate.y;
 
-	switch (state) {
+	switch (state)
+	{
+	case FALLING:
+
+		velocity.y = v_old + g*dt;
+		coordinate.y = s_old + ((v_old + velocity.y) / 2.0)*dt; // Use improved Euler Integration
+		if (coordinate.y < initialCoordY)
+		{
+			if (collision.second == NONE)
+			{
+				state == FALLING;
+			}
+			else {
+				state = ON_GROUND;
+				velocity.y = -velocity.y;
+			}
+		}
+		break;
+	case JUMPING:
+
+		//fc = (jumpHeight - coordinate.y) / jumpHeight; // Find point of collision
+		//ndt = fc*dt;			 // Calculate remaining timestep
+		velocity.y = v_old + g*dt;  // Reintegrate
+		if (velocity.y < 0) 
+			state = FALLING;
+		if (collision.second == DOWN)
+		{
+			state = FALLING;
+			velocity.y = -velocity.y;
+			break;
+		}
+		coordinate.y = coordinate.y + (((v_old + velocity.y) / 1.5)*dt);
+		if (coordinate.y > initialCoordY + jumpHeight)
+		{
+			state = FALLING;
+			velocity.y = initialVelocity.y;
+		}
+			
+		break;
+	case ON_GROUND:
+		if (collision.second == UP) {
+			velocity.y = initialVelocity.y;
+			break;
+		}
+		else
+		{
+			state = FALLING;
+			velocity.y = initialVelocity.y;
+			break;
+		}
+
+	}
+
+
+
+	/*switch (state) {
 	case JumpState::ON_GROUND:
 
 		if (direction != Direction::UP)
@@ -112,66 +196,47 @@ void Player::checkJumpState(float dt)
 			break;
 		}
 		break;
-	case JumpState::JUMPING:
-		if (coordinate.y < initialCoordY + jumpHeight  && direction != Direction::DOWN)
-		{
-			velocity.y = v_old + g*dt;
-			coordinate.y = s_old + ((v_old + velocity.y) / 2.0)*dt; // Use improved Euler Integration
+	case JumpState::JUMPING:*/
 
-			if (coordinate.y < initialCoordY)
-			{
-				fc =  (s_old - coordinate.y) / s_old ; // Find point of collision
-				ndt = fc*dt;			 // Calculate remaining timestep
-				velocity.y = v_old + g*ndt;  // Reintegrate
-				coordinate.y = s_old + (((v_old + velocity.y) / 2.0)*ndt);
-				velocity.y = -velocity.y;
-				//coordinate.y = initialCoordY;
-				state = JumpState::ON_GROUND;
-			}
 				
 			//coordinate.y = coordinate.y + (velocity.y*heightAR);
 
-		}
-		else
-		{
-			this->state = JumpState::FALLING;
-		}
+	//	break;
+	//case JumpState::FALLING:
 
-		break;
-	case JumpState::FALLING:
-
-		if (coordinate.y > initialCoordY)
-		{
-			if (direction == Direction::UP)
-			{
-				this->state = JumpState::ON_GROUND;
-			}
-			else
-			{
-				velocity.y = v_old + g*0.01;
-				coordinate.y = s_old + ((v_old + velocity.y) / 2.0)*0.01; // Use improved Euler Integration
+	//	if (coordinate.y > initialCoordY)
+	//	{
+	//		if (direction == Direction::UP)
+	//		{
+	//			this->state = JumpState::ON_GROUND;
+	//		}
+	//		else
+	//		{
+	//			
+	//			velocity.y = v_old + g*dt;
+	//			coordinate.y = s_old + ((v_old + velocity.y) / 2.0)*dt; // Use improved Euler Integration
 
 
-				//coordinate.y = coordinate.y - (velocity.y*heightAR);
-			}
+	//			//coordinate.y = coordinate.y - (velocity.y*heightAR);
+	//		}
 
-		}
-		else
-		{
+	//	}
+	//	else
+	//	{
 
-			if (direction != Direction::DOWN)
-			{
-				initialCoordY = -15.0f;
-			}
-			else
-			{
-				this->state = JumpState::ON_GROUND;
-			}
+	//		if (direction != Direction::DOWN)
+	//		{
+	//			initialCoordY = -15.0f;
+	//		}
+	//		else
+	//		{
+	//			this->state = JumpState::ON_GROUND;
+	//		}
 
-		}
+	//	}
 
 
-		break;
-	}
+	//	break;
+	//}
 
 }
