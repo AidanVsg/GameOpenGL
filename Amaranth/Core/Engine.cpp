@@ -61,16 +61,13 @@ void render(int width, int height)
 
 void doCollisions()
 {
+	player.collision = Player::CollisionSides(Player::Direction::NONE, Player::Direction::NONE);
+
 	for (Entity e : world.getEntities())
 	{
 		if (player.checkCollision(e))
 		{
-			player.collision = player.collisionSide(e);
-			break;
-		}
-		else
-		{
-			player.collision = Player::CollisionSides(Player::Direction::NONE, Player::Direction::NONE);
+			player.collisionSide(e);
 		}
 	}
 }
@@ -80,7 +77,7 @@ void populateWorld()
 	world.addEntity(Entity(glm::vec2(0.0f, 0.0f), glm::vec2(600.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture()));
 	world.addEntity(Entity(glm::vec2(300.0f, 50.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
 	world.addEntity(Entity(glm::vec2(400.0f, 80.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
-	world.addEntity(Entity(glm::vec2(600.0f, 0.0f), glm::vec2(25.0f, 600.0f), glm::vec2(0.08f, 0.033f), Texture()));
+	world.addEntity(Entity(glm::vec2(575.0f, 0.0f), glm::vec2(25.0f, 600.0f), glm::vec2(0.08f, 0.033f), Texture()));
 
 	//std::vector<std::pair<int, int>> NPCcoords; NPCcoords.push_back({ 0,0 }); NPCcoords.push_back({ 0,25 }); NPCcoords.push_back({ 25,25 }); NPCcoords.push_back({ 25, 0 }); NPCcoords.push_back({ 0, 0 });
 	//world.addEntity(NPC(250, 0, true, NPCcoords));

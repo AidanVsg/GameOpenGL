@@ -49,10 +49,8 @@ bool Player::checkCollision(Entity &e)
 
 void Player::resetCollisions(){ direction = Direction::NONE;}
 
-Player::CollisionSides Player::collisionSide(Entity &e)
+void Player::collisionSide(Entity &e)
 {
-	CollisionSides newCollision(NONE, NONE);
-
 	glm::vec2 pHalf(length.x / 2, length.y / 2);
 	glm::vec2 pCenter(coordinate.x + pHalf.x, coordinate.y + pHalf.y);
 
@@ -86,14 +84,12 @@ Player::CollisionSides Player::collisionSide(Entity &e)
 
 	if (best_match == 1 || best_match == 3)
 	{
-		newCollision.first = (Direction)best_match;
+		collision.first = (Direction)best_match;
 	}
 	else
 	{
-		newCollision.second = (Direction)best_match;
+		collision.second = (Direction)best_match;
 	}
-
-	return newCollision;
 }
 
 void Player::moveRight(){ if (collision.first != Direction::LEFT) coordinate.x += velocity.x*widthAR;}

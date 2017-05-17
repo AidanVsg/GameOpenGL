@@ -36,7 +36,7 @@ public:
 	bool keys[256];
 
 	bool checkCollision(Entity &second);
-	CollisionSides collisionSide(Entity &e);
+	void collisionSide(Entity &e);
 	void resetCollisions(), processKeys(), moveRight(), moveLeft(), jump(), checkJumpState(float dt);
 private:
 
