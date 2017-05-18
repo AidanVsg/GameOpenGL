@@ -24,6 +24,7 @@
     <ClCompile Include="Object\NPC.cpp" />
     <ClCompile Include="Object\Player.cpp" />
     <ClCompile Include="Object\Prop.cpp" />
+    <ClCompile Include="Core\SpatialHash.cpp" />
     <ClCompile Include="View\Renderer.cpp" />
     <ClCompile Include="View\Texture.cpp" />
     <ClCompile Include="Object\World.cpp" />
@@ -33,6 +34,7 @@
     <ClInclude Include="Object\Headers\NPC.h" />
     <ClInclude Include="Object\Headers\Player.h" />
     <ClInclude Include="Object\Headers\Prop.h" />
+    <ClInclude Include="Core\SpatialHash.h" />
     <ClInclude Include="View\Headers\Renderer.h" />
     <ClInclude Include="View\Headers\Texture.h" />
     <ClInclude Include="Object\Headers\World.h" />

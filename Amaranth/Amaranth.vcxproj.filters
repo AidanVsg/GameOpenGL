@@ -50,6 +50,9 @@
     <ClCompile Include="Object\World.cpp">
       <Filter>Source Files\View</Filter>
     </ClCompile>
+    <ClCompile Include="Core\SpatialHash.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Object\Headers\Entity.h">
@@ -72,6 +75,9 @@
     </ClInclude>
     <ClInclude Include="Object\Headers\World.h">
       <Filter>Header Files\View</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\SpatialHash.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

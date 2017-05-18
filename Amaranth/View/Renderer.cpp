@@ -29,22 +29,28 @@ void Renderer::display(Player p, World world)
 	glFlush();
 
 }
-void Renderer::reshape(int width, int height, Player p)
+std::pair<Renderer::X, Renderer::Y> Renderer::reshape(int width, int height, Player p)
 {
 	const float c = 270.0f;
-         // to ensure the mouse coordinates match 
-															// we will use these values to set the coordinate system
+	GLdouble camX = p.GetCoordinate().x - c;
+	GLdouble camXWidth = p.GetCoordinate().x + c;
+	GLdouble camY = p.GetCoordinate().y - c;
+	GLdouble camYHeight = p.GetCoordinate().y + c;
+
+	std::pair<X, Y> cam; cam.first.first = camX; cam.first.second = camXWidth; cam.second.first = camY; cam.second.second = camYHeight;
 
 	glViewport(0, 0, width, height);						// Reset the current viewport
 
 	glMatrixMode(GL_PROJECTION);						// select the projection matrix stack
 	glLoadIdentity();									// reset the top of the projection matrix to an identity matrix
 
-	gluOrtho2D(p.GetCoordinate().x - c, p.GetCoordinate().x + c, 
-				p.GetCoordinate().y - c, p.GetCoordinate().y + c);           // set the coordinate system for the window
+	gluOrtho2D(camX, camXWidth, camY, camYHeight);           // set the coordinate system for the window
 
 	glMatrixMode(GL_MODELVIEW);							// Select the modelview matrix stack
 	glLoadIdentity();									// Reset the top of the modelview matrix to an identity matrix
+
+
+	return cam;
 }
 
 void Renderer::reshape(int width, int height)

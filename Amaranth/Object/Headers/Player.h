@@ -29,10 +29,6 @@ public:
 
 	typedef std::pair<Horizontal, Vertical> CollisionSides;
 
-	CollisionSides collision;
-	Direction direction;
-	JumpState state;
-
 	bool keys[256];
 
 	bool checkCollision(Entity &second);
@@ -40,9 +36,14 @@ public:
 	void resetCollisions(), processKeys(), moveRight(), moveLeft(), jump(), checkJumpState(float dt);
 private:
 
-
+	CollisionSides collision;
+	JumpState jstate;
 	float initialCoordY, jumpHeight;
 	glm::vec2 initialVelocity;
 };
 
+
+
 #endif  //_PLAYER_H
+
+

@@ -6,14 +6,19 @@
 #include "../Object/Headers/Player.h"
 #include "../Object/Headers/World.h"
 #include "../View/Headers/Texture.h"
+#include "SpatialHash.h"
 
 #include "../glm/glm/glm.hpp"
 #include "../glm/glm/gtc/matrix_transform.hpp"
 #include "../glm/glm/gtc/type_ptr.hpp"
+float worldWidth = 5000;
+float worldHeight = 5000;
 
-Player player(glm::vec2(0.0f,80.0f),glm::vec2(25.0f,25.0f), glm::vec2(0.13f,15.0f) , Texture(), 50.0f);
+Player player(glm::vec2(0.0f,80.0f),glm::vec2(25.0f,25.0f), glm::vec2(0.21f,15.0f) , Texture(), 50.0f);
 Renderer renderer;
 World world;
+SpatialHash grid(worldWidth, worldHeight,200);
+
 
 GLuint currentWidth = 800, currentHeight = 600;
 GLuint targetWidth = 800, targetHeight = 600;
@@ -26,6 +31,7 @@ void doCollisions();
 void update();
 void render(int width, int height);
 void populateWorld();
+std::pair<Renderer::X, Renderer::Y> cam;
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc
 void KillGLWindow();									// releases and destroys the window
 bool CreateGLWindow(char* title, int width, int height); //creates the window
@@ -48,22 +54,22 @@ void update()
 	doCollisions();//doCollisions();
 	player.checkJumpState(timeSimulation());
 
-
-	renderer.reshape(currentWidth, currentHeight, player);
+	cam = renderer.reshape(currentWidth, currentHeight, player);
 	renderer.display(player, world);					// Draw The Scene
 }
 
 void render(int width, int height)
 {
-	renderer.reshape(width, height, player);	// Set Up Our Perspective GL Screen
+	cam = renderer.reshape(width, height, player);	// Set Up Our Perspective GL Screen
 	renderer.init();
 }
 
 void doCollisions()
 {
-	player.collision = Player::CollisionSides(Player::Direction::NONE, Player::Direction::NONE);
+	player.resetCollisions();
 
-	for (Entity e : world.getEntities())
+	//for (Entity e : world.getEntities())
+	for(Entity e : grid.collect(cam.first.first, cam.first.second, cam.second.first, cam.second.second))
 	{
 		if (player.checkCollision(e))
 		{
@@ -78,6 +84,10 @@ void populateWorld()
 	world.addEntity(Entity(glm::vec2(300.0f, 50.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
 	world.addEntity(Entity(glm::vec2(400.0f, 80.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
 	world.addEntity(Entity(glm::vec2(575.0f, 0.0f), glm::vec2(25.0f, 600.0f), glm::vec2(0.08f, 0.033f), Texture()));
+	grid.add(Entity(glm::vec2(0.0f, 0.0f), glm::vec2(600.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture()));
+	grid.add(Entity(glm::vec2(300.0f, 50.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
+	grid.add(Entity(glm::vec2(400.0f, 80.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
+	grid.add(Entity(glm::vec2(575.0f, 0.0f), glm::vec2(25.0f, 600.0f), glm::vec2(0.08f, 0.033f), Texture()));
 
 	//std::vector<std::pair<int, int>> NPCcoords; NPCcoords.push_back({ 0,0 }); NPCcoords.push_back({ 0,25 }); NPCcoords.push_back({ 25,25 }); NPCcoords.push_back({ 25, 0 }); NPCcoords.push_back({ 0, 0 });
 	//world.addEntity(NPC(250, 0, true, NPCcoords));

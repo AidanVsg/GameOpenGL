@@ -23,10 +23,17 @@ public:
 	//CONSTRUCTORS
 	Entity();
 	Entity(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, Texture tex);
+
+	typedef glm::vec2 GridCoordinates;
+
 	GET(glm::vec2, coordinate, Coordinate)
-		GET(glm::vec2, length, Length)
-		SET(float, widthAR, WidthAR)
-		SET(float, heightAR, HeightAR)
+	GET(glm::vec2, length, Length)
+	GET(std::vector<GridCoordinates>, grids, Grids)
+	SET(float, widthAR, WidthAR)
+	SET(float, heightAR, HeightAR)
+	SET(std::vector<GridCoordinates>, grids, Grids)
+
+
 		//SETTERS
 		//inline void setAR(float wAR, float hAR);
 		//inline void setTexture(Texture texture);
@@ -46,6 +53,7 @@ protected:
 	float widthAR, heightAR, healthPoints;
 	glm::vec2 coordinate, length, velocity;
 	Texture texture;
+	std::vector<GridCoordinates> grids;
 };
 
 

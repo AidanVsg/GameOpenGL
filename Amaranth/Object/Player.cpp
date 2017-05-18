@@ -1,12 +1,12 @@
 ﻿#include "../Object/Headers/Player.h"
 #include <iostream>
 
-Player::Player() : Entity(), jumpHeight(0.0f), state(JumpState::FALLING), direction(Direction::NONE), initialVelocity(velocity)
+Player::Player() : Entity(), jumpHeight(0.0f), jstate(JumpState::FALLING), collision(Direction::NONE, Direction::NONE), initialVelocity(velocity)
 { }
 
 Player::Player(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, Texture tex,
 	float jumpH)
-	: Entity(coords, len, vel, tex), state(JumpState::FALLING), direction(Direction::NONE), jumpHeight(jumpH), initialVelocity(velocity), collision(Direction::NONE, Direction::NONE)
+	: Entity(coords, len, vel, tex), jstate(JumpState::FALLING), jumpHeight(jumpH), initialVelocity(velocity), collision(Direction::NONE, Direction::NONE)
 { }
 
 //Player::~Player()
@@ -47,7 +47,10 @@ bool Player::checkCollision(Entity &e)
 	return on_x && on_y;
 }
 
-void Player::resetCollisions(){ direction = Direction::NONE;}
+void Player::resetCollisions()
+{
+	collision = Player::CollisionSides(Player::Direction::NONE, Player::Direction::NONE);
+}
 
 void Player::collisionSide(Entity &e)
 {
@@ -99,11 +102,11 @@ void Player::moveLeft(){ if (collision.first != Direction::RIGHT) coordinate.x -
 void Player::jump()
 {
 
-	if (state == JumpState::ON_GROUND)
+	if (jstate == JumpState::ON_GROUND)
 	{
 		initialCoordY = coordinate.y;
 		//this->state = JumpState::JUMPING;
-		state = JUMPING;
+		jstate = JUMPING;
 
 	}
 }
@@ -111,12 +114,11 @@ void Player::jump()
 void Player::checkJumpState(float dt)
 {
 
-
 	if (dt > 0.15f) dt = 0.15f;
 		
 
-	float g = -9.81; float frac = 0.95;
-	float v_old, s_old, fc;
+	float g = -9.81;
+	float v_old, c_old, fc;
 	double ndt;
 
 	if (collision.second == UP)
@@ -126,22 +128,22 @@ void Player::checkJumpState(float dt)
 	}
 
 	v_old = velocity.y;
-	s_old = coordinate.y;
+	c_old = coordinate.y;
 
-	switch (state)
+	switch (jstate)
 	{
 	case FALLING:
 
 		velocity.y = v_old + g*dt;
-		coordinate.y = s_old + ((v_old + velocity.y) / 2.0)*dt; // Use improved Euler Integration
+		coordinate.y = c_old + ((v_old + velocity.y) / 2.0)*dt; // Use improved Euler Integration
 		if (coordinate.y < initialCoordY)
 		{
 			if (collision.second == NONE)
 			{
-				state == FALLING;
+				jstate == FALLING;
 			}
 			else {
-				state = ON_GROUND;
+				jstate = ON_GROUND;
 				velocity.y = -velocity.y;
 			}
 		}
@@ -152,87 +154,34 @@ void Player::checkJumpState(float dt)
 		//ndt = fc*dt;			 // Calculate remaining timestep
 		velocity.y = v_old + g*dt;  // Reintegrate
 		if (velocity.y < 0) 
-			state = FALLING;
+			jstate = FALLING;
 		if (collision.second == DOWN)
 		{
-			state = FALLING;
+			jstate = FALLING;
 			velocity.y = -velocity.y;
 			break;
 		}
 		coordinate.y = coordinate.y + (((v_old + velocity.y) / 1.5)*dt);
 		if (coordinate.y > initialCoordY + jumpHeight)
 		{
-			state = FALLING;
+			jstate = FALLING;
 			velocity.y = initialVelocity.y;
 		}
 			
 		break;
 	case ON_GROUND:
-		if (collision.second == UP) {
+		if (collision.second == UP) { //TODO check if on ground for more than second, then change velocity
 			velocity.y = initialVelocity.y;
 			break;
 		}
 		else
 		{
-			state = FALLING;
+			jstate = FALLING;
 			velocity.y = initialVelocity.y;
 			break;
 		}
 
 	}
-
-
-
-	/*switch (state) {
-	case JumpState::ON_GROUND:
-
-		if (direction != Direction::UP)
-		{
-			state = JumpState::FALLING;
-			break;
-		}
-		break;
-	case JumpState::JUMPING:*/
-
-				
-			//coordinate.y = coordinate.y + (velocity.y*heightAR);
-
-	//	break;
-	//case JumpState::FALLING:
-
-	//	if (coordinate.y > initialCoordY)
-	//	{
-	//		if (direction == Direction::UP)
-	//		{
-	//			this->state = JumpState::ON_GROUND;
-	//		}
-	//		else
-	//		{
-	//			
-	//			velocity.y = v_old + g*dt;
-	//			coordinate.y = s_old + ((v_old + velocity.y) / 2.0)*dt; // Use improved Euler Integration
-
-
-	//			//coordinate.y = coordinate.y - (velocity.y*heightAR);
-	//		}
-
-	//	}
-	//	else
-	//	{
-
-	//		if (direction != Direction::DOWN)
-	//		{
-	//			initialCoordY = -15.0f;
-	//		}
-	//		else
-	//		{
-	//			this->state = JumpState::ON_GROUND;
-	//		}
-
-	//	}
-
-
-	//	break;
-	//}
-
 }
+
+
