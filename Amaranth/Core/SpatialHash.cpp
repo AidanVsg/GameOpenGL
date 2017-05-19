@@ -6,13 +6,13 @@ SpatialHash::SpatialHash() : CELL_SIZE(60)
 SpatialHash::SpatialHash(float wWidth, float wHeight, int cellSize) : CELL_SIZE(cellSize), worldWidth(wWidth), worldHeight(wHeight)
 {}
 
-void SpatialHash::add(Entity &e)
+void SpatialHash::add(Entity* &e)
 {
-	int x = (int)e.GetCoordinate().x / CELL_SIZE; 
-	int y = (int)e.GetCoordinate().y / CELL_SIZE;
+	int x = (int)e->GetCoordinate().x / CELL_SIZE;
+	int y = (int)e->GetCoordinate().y / CELL_SIZE;
 
-	int xL = (int)(e.GetCoordinate().x + e.GetLength().x) / CELL_SIZE;
-	int yL = (int)(e.GetCoordinate().y + e.GetLength().y) / CELL_SIZE;
+	int xL = (int)(e->GetCoordinate().x + e->GetLength().x) / CELL_SIZE;
+	int yL = (int)(e->GetCoordinate().y + e->GetLength().y) / CELL_SIZE;
 
 	GridCoordinates coords0(x, y); 
 	GridCoordinates coords1(x, yL);
@@ -30,7 +30,7 @@ void SpatialHash::add(Entity &e)
 		}
 	}
 		
-	e.SetGrids(gridcoords);
+	e->SetGrids(gridcoords);
 }
 
 
@@ -53,7 +53,7 @@ void SpatialHash::clear()
 	grid = Grid();
 }
 
-std::vector<Entity> SpatialHash::collect(float camX, float camXWidth, float camY, float camYHeight)
+std::vector<Entity*> SpatialHash::collect(float camX, float camXWidth, float camY, float camYHeight)
 {
 
 	const int c = 150; //Padding so that objects don't pop
@@ -65,7 +65,7 @@ std::vector<Entity> SpatialHash::collect(float camX, float camXWidth, float camY
 	int xL = ((int)camXWidth +c)/ CELL_SIZE; if (xL < 0) xL = 0;
 	int yL = ((int)camYHeight +c) / CELL_SIZE; if (yL < 0) yL = 0;
 
-	std::vector<Entity> objects;
+	std::vector<Entity*> objects;
 	
 
 	for (int newx=x;newx <= xL;newx++)

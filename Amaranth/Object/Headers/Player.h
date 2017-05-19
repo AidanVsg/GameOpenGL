@@ -31,8 +31,8 @@ public:
 
 	bool keys[256];
 
-	bool checkCollision(Entity &second);
-	void collisionSide(Entity &e);
+	bool checkCollision(Entity* &second);
+	void collisionSide(Entity* &e);
 	void resetCollisions(), processKeys(), moveRight(), moveLeft(), jump(), checkJumpState(float dt);
 private:
 

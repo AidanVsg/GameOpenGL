@@ -26,11 +26,10 @@ public:
 	typedef std::pair<GLdouble, GLdouble> X;
 	typedef std::pair<GLdouble, GLdouble> Y;
 
-	void display(Player p, std::vector<Entity>);						//called in winmain to draw everything to the screen
-	void reshape(int width, int height);	//called when the window is resized
-	std::pair<X,Y> reshape(int width, int height, Player p);
+	void display(Player *p, std::vector<Entity*>);						//called in winmain to draw everything to the screen	
+	std::pair<X,Y> reshape(int width, int height, Player *p); //called when the window is resized
 	void init();										//called in winmain when the program starts.									//called in winmain to update variables
-	void drawEntity(Entity entity);			//draws an Entity (Player, NPC)
+	void drawEntity(Entity *entity);			//draws an Entity (Player, NPC)
 
 };
 #endif

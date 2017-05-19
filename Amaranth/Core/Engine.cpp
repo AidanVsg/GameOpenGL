@@ -1,10 +1,10 @@
-#include <windows.h>		// Header file for Windows
+#include <windows.h>		
 #include <iostream>
-#include "../glew/include/GL/glew.h"			// Header file for the OpenGL32 Library
+#include "../glew/include/GL/glew.h"			
 #include "../View/Headers/Renderer.h"
 #include "../Object/Headers/NPC.h"
 #include "../Object/Headers/Player.h"
-#include "../Object/Headers/World.h"
+//#include "../Object/Headers/World.h" //Deprecated. Using a Spatial Grid to collect world objects now.
 #include "../View/Headers/Texture.h"
 #include "SpatialHash.h"
 
@@ -14,16 +14,16 @@
 float worldWidth = 5000;
 float worldHeight = 5000;
 
-Player player(glm::vec2(0.0f,80.0f),glm::vec2(25.0f,25.0f), glm::vec2(15.0f,15.0f) , Texture(), 50.0f);
+Player *player = new Player(glm::vec2(0.0f,80.0f),glm::vec2(25.0f,25.0f), glm::vec2(15.0f,15.0f) , Texture(), 50.0f);
 Renderer renderer;
-World world;
+//World world; //Deprecated. Using a Spatial Grid to collect world objects now.
 SpatialHash grid(worldWidth, worldHeight,200);
 
 
-GLuint currentWidth = 800, currentHeight = 600;
-GLuint targetWidth = 800, targetHeight = 600;
+GLuint currentWidth = 1280, currentHeight = 768; //Current resolution
+GLuint targetWidth = 1280, targetHeight = 768; //Target resolution
 double timerFrequencyRecip = 0.000003;
-float deltaT;
+float deltaT; //Delta time between each update cycle
 __int64 prevTime;
 
 enum GameState
@@ -32,13 +32,13 @@ enum GameState
 	ACTIVE,
 	EDITOR,
 };
-double timeSimulation();
-void combineEntities();
+
+double timeSimulation(); //Simulates the delta of time for each update cycle
 void doCollisions();
-void update();
-void render(int width, int height);
-void populateWorld();
-std::vector<Entity> collected;
+void update(); //Game update cycle to process objects on screen, keyboard, resolve collision, check jumping
+void render(int width, int height); //Renders the objects on screen
+void populateWorld(); //Function to populate the game world, adding objects to grid
+std::vector<Entity*> collected;
 std::pair<Renderer::X, Renderer::Y> cam;
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc
 void KillGLWindow();									// releases and destroys the window
@@ -54,26 +54,18 @@ HINSTANCE	hInstance;		// Holds The Instance Of The Application
 void update()
 {		
 	collected = grid.collect(cam.first.first, cam.first.second, cam.second.first, cam.second.second);
-	//doCollisions();
-	player.processKeys();//process keyboard	
-	doCollisions();
-	//doCollisions();//doCollisions();
-	player.checkJumpState(timeSimulation());
 
-	cam = renderer.reshape(currentWidth, currentHeight, player);
-	renderer.display(player, collected);					// Draw The Scene
-}
+	player->processKeys();											//Process keyboard
+	doCollisions();													//Collision detection
+	player->checkJumpState(timeSimulation());						//Check if player is jumping/falling/on-ground
 
-void combineEntities()
-{
-	//std::vector<Entity> bucket;
-	//std::vector<Entity> objects = world.getEntities();
-	//Entity newEX;
-	//Entity newEY;
-	//for (int i = 0; i < objects.size(); i++)
-	//{
-	//	if(objects[i].GetCoordinate)
-	//}
+	cam = renderer.reshape(currentWidth, currentHeight, player);	//Sets Perspective GL Screen in respect to player coordinates
+	renderer.display(player, collected);							// Draw the scene
+	if (player->GetCoordinate().x < -100 || player->GetCoordinate().y < -100)
+	{
+		delete(player);
+		player = new Player(glm::vec2(0.0f, 80.0f), glm::vec2(25.0f, 25.0f), glm::vec2(15.0f, 15.0f), Texture(), 50.0f);
+	}
 }
 
 void render(int width, int height)
@@ -83,41 +75,40 @@ void render(int width, int height)
 }
 
 void doCollisions()
-{
-	
-	player.resetCollisions();
+{	
+	player->resetCollisions(); //Each update cycle resets collision to none
 
-	//for (Entity e : world.getEntities())
-	for(Entity e : collected)
+	for(Entity* e : collected) //For each entity on screen
 	{
-		if (player.checkCollision(e))
+		if (player->checkCollision(e)) //AABB collision detection
 		{
-			player.collisionSide(e);
+			player->collisionSide(e); //Check for the side of collision 
 		}
 	}
 }
 
 void populateWorld()
 {
-	Entity e(glm::vec2(0.0f, 0.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
-	e.SetN_right(true); e.SetN_left(true);
+	
+	
 
 	for (float i = 0.0f; i < 600; i+=25.0f)
 	{
-		e.SetCoordinate(glm::vec2(i, 0.0f));
+		Entity *e = new Entity(glm::vec2(i, 0.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
+		e->SetN_right(true); e->SetN_left(true);
 		//world.addEntity(e); 
 		grid.add(e);
 	}
-	Entity e2(glm::vec2(360.0f, 0.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
-	e2.SetN_up(true); e2.SetN_down(true);
+
 	for (float i = 0.0f; i < 200; i += 25.0f)
 	{		
-		e2.SetCoordinate(glm::vec2(360.0f, i));
+		Entity *e2 = new Entity(glm::vec2(360.0f, i), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
+		e2->SetN_up(true); e2->SetN_down(true);
 		//world.addEntity(e2);
 		grid.add(e2);		
 	}
-	Entity e3(glm::vec2(290.0f, 120.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
-	Entity e4(glm::vec2(150.0f, 40.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
+	Entity *e3 = new Entity(glm::vec2(290.0f, 120.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
+	Entity *e4 = new Entity(glm::vec2(150.0f, 40.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
 
 	//world.addEntity(e3);
 	grid.add(e3);
@@ -202,7 +193,7 @@ int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
 		}
 		else										// If There Are No Messages
 		{
-				if (player.keys[VK_ESCAPE]) done = true;
+				if (player->keys[VK_ESCAPE]) done = true;
 				update();
 
 				SwapBuffers(hDC);							// Swap Buffers (Double Buffering)
@@ -262,13 +253,13 @@ LRESULT CALLBACK WndProc(HWND	hWnd,			// Handle For This Window
 	break;
 	case WM_KEYDOWN:							// Is A Key Being Held Down?
 	{
-		player.keys[wParam] = true;					// If So, Mark It As TRUE
+		player->keys[wParam] = true;					// If So, Mark It As TRUE
 		return 0;								// Jump Back
 	}
 	break;
 	case WM_KEYUP:								// Has A Key Been Released?
 	{
-		player.keys[wParam] = false;					// If So, Mark It As FALSE
+		player->keys[wParam] = false;					// If So, Mark It As FALSE
 		return 0;								// Jump Back
 	}
 	break;
