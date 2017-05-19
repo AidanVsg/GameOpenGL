@@ -1,7 +1,7 @@
 
 #include "../View/Headers/Renderer.h"
 
-void Renderer::display(Player p, World world)
+void Renderer::display(Player p, std::vector<Entity> entities)
 {
 
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -20,7 +20,7 @@ void Renderer::display(Player p, World world)
 
 	drawEntity(p);
 
-	for (Entity e : world.getEntities())
+	for (Entity e : entities)
 	{
 		drawEntity(e);
 	}

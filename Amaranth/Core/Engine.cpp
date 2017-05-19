@@ -14,7 +14,7 @@
 float worldWidth = 5000;
 float worldHeight = 5000;
 
-Player player(glm::vec2(0.0f,80.0f),glm::vec2(25.0f,25.0f), glm::vec2(0.21f,15.0f) , Texture(), 50.0f);
+Player player(glm::vec2(0.0f,80.0f),glm::vec2(25.0f,25.0f), glm::vec2(15.0f,15.0f) , Texture(), 50.0f);
 Renderer renderer;
 World world;
 SpatialHash grid(worldWidth, worldHeight,200);
@@ -26,11 +26,19 @@ double timerFrequencyRecip = 0.000003;
 float deltaT;
 __int64 prevTime;
 
+enum GameState
+{
+	MENU,
+	ACTIVE,
+	EDITOR,
+};
 double timeSimulation();
+void combineEntities();
 void doCollisions();
 void update();
 void render(int width, int height);
 void populateWorld();
+std::vector<Entity> collected;
 std::pair<Renderer::X, Renderer::Y> cam;
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc
 void KillGLWindow();									// releases and destroys the window
@@ -44,18 +52,28 @@ HWND		hWnd = NULL;		// Holds Our Window Handle
 HINSTANCE	hInstance;		// Holds The Instance Of The Application
 
 void update()
-{
-	player.SetWidthAR((GLfloat)currentWidth / (GLfloat)targetWidth);
-	player.SetHeightAR(((GLfloat)currentHeight / (GLfloat)targetHeight)*1.5);
-
-	
-												
-	player.processKeys();//process keyboard										
-	doCollisions();//doCollisions();
+{		
+	collected = grid.collect(cam.first.first, cam.first.second, cam.second.first, cam.second.second);
+	//doCollisions();
+	player.processKeys();//process keyboard	
+	doCollisions();
+	//doCollisions();//doCollisions();
 	player.checkJumpState(timeSimulation());
 
 	cam = renderer.reshape(currentWidth, currentHeight, player);
-	renderer.display(player, world);					// Draw The Scene
+	renderer.display(player, collected);					// Draw The Scene
+}
+
+void combineEntities()
+{
+	//std::vector<Entity> bucket;
+	//std::vector<Entity> objects = world.getEntities();
+	//Entity newEX;
+	//Entity newEY;
+	//for (int i = 0; i < objects.size(); i++)
+	//{
+	//	if(objects[i].GetCoordinate)
+	//}
 }
 
 void render(int width, int height)
@@ -66,10 +84,11 @@ void render(int width, int height)
 
 void doCollisions()
 {
+	
 	player.resetCollisions();
 
 	//for (Entity e : world.getEntities())
-	for(Entity e : grid.collect(cam.first.first, cam.first.second, cam.second.first, cam.second.second))
+	for(Entity e : collected)
 	{
 		if (player.checkCollision(e))
 		{
@@ -80,14 +99,50 @@ void doCollisions()
 
 void populateWorld()
 {
-	world.addEntity(Entity(glm::vec2(0.0f, 0.0f), glm::vec2(600.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture()));
-	world.addEntity(Entity(glm::vec2(300.0f, 50.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
-	world.addEntity(Entity(glm::vec2(400.0f, 80.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
-	world.addEntity(Entity(glm::vec2(575.0f, 0.0f), glm::vec2(25.0f, 600.0f), glm::vec2(0.08f, 0.033f), Texture()));
-	grid.add(Entity(glm::vec2(0.0f, 0.0f), glm::vec2(600.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture()));
-	grid.add(Entity(glm::vec2(300.0f, 50.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
-	grid.add(Entity(glm::vec2(400.0f, 80.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
-	grid.add(Entity(glm::vec2(575.0f, 0.0f), glm::vec2(25.0f, 600.0f), glm::vec2(0.08f, 0.033f), Texture()));
+	Entity e(glm::vec2(0.0f, 0.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
+	e.SetN_right(true); e.SetN_left(true);
+
+	for (float i = 0.0f; i < 600; i+=25.0f)
+	{
+		e.SetCoordinate(glm::vec2(i, 0.0f));
+		//world.addEntity(e); 
+		grid.add(e);
+	}
+	Entity e2(glm::vec2(360.0f, 0.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
+	e2.SetN_up(true); e2.SetN_down(true);
+	for (float i = 0.0f; i < 200; i += 25.0f)
+	{		
+		e2.SetCoordinate(glm::vec2(360.0f, i));
+		//world.addEntity(e2);
+		grid.add(e2);		
+	}
+	Entity e3(glm::vec2(290.0f, 120.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
+	Entity e4(glm::vec2(150.0f, 40.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
+
+	//world.addEntity(e3);
+	grid.add(e3);
+	//world.addEntity(e4);
+	grid.add(e4);
+
+	//world.addEntity(e);
+	//world.addEntity(e);
+	//world.addEntity(e);
+	//world.addEntity(e);
+	//world.addEntity(e);
+	//world.addEntity(e);
+	//world.addEntity(e);
+
+
+
+
+	//world.addEntity(Entity(glm::vec2(0.0f, 0.0f), glm::vec2(600.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture()));
+	//world.addEntity(Entity(glm::vec2(300.0f, 50.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
+	//world.addEntity(Entity(glm::vec2(400.0f, 80.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
+	//world.addEntity(Entity(glm::vec2(575.0f, 0.0f), glm::vec2(25.0f, 600.0f), glm::vec2(0.08f, 0.033f), Texture()));
+	//grid.add(Entity(glm::vec2(0.0f, 0.0f), glm::vec2(600.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture()));
+	//grid.add(Entity(glm::vec2(300.0f, 50.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
+	//grid.add(Entity(glm::vec2(400.0f, 80.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
+	//grid.add(Entity(glm::vec2(575.0f, 0.0f), glm::vec2(25.0f, 600.0f), glm::vec2(0.08f, 0.033f), Texture()));
 
 	//std::vector<std::pair<int, int>> NPCcoords; NPCcoords.push_back({ 0,0 }); NPCcoords.push_back({ 0,25 }); NPCcoords.push_back({ 25,25 }); NPCcoords.push_back({ 25, 0 }); NPCcoords.push_back({ 0, 0 });
 	//world.addEntity(NPC(250, 0, true, NPCcoords));

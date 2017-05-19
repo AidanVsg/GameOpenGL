@@ -19,7 +19,6 @@ void Player::processKeys()
 	if (keys[VK_UP] || keys[0x57])
 	{
 		jump();
-		std::cout << "Har: " << heightAR << std::endl;
 	}
 	if (keys[VK_DOWN] || keys[0x53])
 	{
@@ -28,14 +27,10 @@ void Player::processKeys()
 	if (keys[VK_LEFT] || keys[0x41]) 
 	{
 		moveLeft();
-		std::cout << "ar: " << widthAR << std::endl;
-		/*std::cout << "left: " << Get_x() << std::endl;
-		std::cout << "left: " << getW_AR() << std::endl;*/
 	}
 	if (keys[VK_RIGHT] || keys[0x44])
 	{
 		moveRight();
-		std::cout << "ar: " << widthAR << std::endl;
 	}
 }
 
@@ -85,19 +80,30 @@ void Player::collisionSide(Entity &e)
 		}
 	}
 
-	if (best_match == 1 || best_match == 3)
+	switch (best_match)
 	{
-		collision.first = (Direction)best_match;
-	}
-	else
-	{
-		collision.second = (Direction)best_match;
+	case 0:
+		if(!e.GetN_up()) 
+			collision.second = (Direction)best_match;
+		break; 
+	case 2:
+		if (!e.GetN_down()) 
+			collision.second = (Direction)best_match;
+		break;
+	case 1:
+		if (!e.GetN_right()) 
+			collision.first = (Direction)best_match;
+		break;
+	case 3:
+		if (!e.GetN_left()) 
+			collision.first = (Direction)best_match;
+		break;
 	}
 }
 
-void Player::moveRight(){ if (collision.first != Direction::LEFT) coordinate.x += velocity.x*widthAR;}
+void Player::moveRight(){ if (collision.first != Direction::LEFT) coordinate.x += velocity.x*dt;}
 
-void Player::moveLeft(){ if (collision.first != Direction::RIGHT) coordinate.x -= velocity.x*widthAR;}
+void Player::moveLeft(){ if (collision.first != Direction::RIGHT) coordinate.x -= velocity.x*dt;}
 
 void Player::jump()
 {
@@ -113,7 +119,7 @@ void Player::jump()
 
 void Player::checkJumpState(float dt)
 {
-
+	this->dt = dt;
 	if (dt > 0.15f) dt = 0.15f;
 		
 
