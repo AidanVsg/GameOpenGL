@@ -165,14 +165,23 @@ void Player::checkJumpState(float dt)
 		if (collision.second == DOWN)
 		{
 			jstate = FALLING;
+			velocity.y = initialVelocity.y;
 			velocity.y = -velocity.y;
 			break;
 		}
 		coordinate.y = coordinate.y + (((v_old + velocity.y) / 1.4)*dt);
 		if (coordinate.y > initialCoordY + jumpHeight)
 		{
+			if (collision.second == DOWN)
+			{
+				jstate = FALLING;
+				velocity.y = initialVelocity.y;
+				velocity.y = -velocity.y;
+				break;
+			}
 			jstate = FALLING;
 			velocity.y = 15.0f;
+
 		}
 			
 		break;

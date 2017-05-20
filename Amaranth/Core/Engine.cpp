@@ -25,8 +25,10 @@ GLfloat AR = ((float)targetWidth / targetHeight);
 double timerFrequencyRecip = 0.000003;
 float deltaT; //Delta time between each update cycle
 __int64 prevTime;
+glm::vec2 startingCoord;
+glm::vec2 pSize(25.0f, 25.0f);
 
-Player *player = new Player(glm::vec2(0.0f, 80.0f), glm::vec2(30.0f, 30.0f), glm::vec2(15.0f, pVelocityY), Texture(), jumpHeight);
+Player *player = new Player(glm::vec2(0.0f, 80.0f), pSize, glm::vec2(15.0f, pVelocityY), Texture(), jumpHeight);
 Renderer renderer(AR);
 //World world; //Deprecated. Using a Spatial Grid to collect world objects now.
 SpatialHash grid(worldWidth, worldHeight, 200);
@@ -72,13 +74,13 @@ void update()
 	if (player->GetCoordinate().x < -100 || player->GetCoordinate().y < -100)
 	{
 		delete(player);
-		player = new Player(glm::vec2(0.0f, 80.0f), glm::vec2(25.0f, 25.0f), glm::vec2(15.0f, pVelocityY), Texture(), jumpHeight);
+		player = new Player(startingCoord, pSize, glm::vec2(15.0f, pVelocityY), Texture(), jumpHeight);
 	}
 }
 
 void processKeys_external()
 {
-	if (player->keys[0x52]) player = new Player(glm::vec2(0.0f, 80.0f), glm::vec2(25.0f, 25.0f), glm::vec2(15.0f, pVelocityY), Texture(), jumpHeight);
+	if (player->keys[0x52]) player = new Player(startingCoord, pSize, glm::vec2(15.0f, pVelocityY), Texture(), jumpHeight);
 }
 
 void render(int width, int height)
@@ -130,7 +132,7 @@ void populateWorld()
 			//std::vector<GLuint> row;
 			while (sstream >> tileCode) 
 			{
-				if (tileCode == 1 || tileCode == 2)
+				if (tileCode == 1 || tileCode == 5)
 				{
 					things[100-row][col] = tileCode;
 					//Entity *e = new Entity(glm::vec2(col*25.0f, (100-row)*25.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
@@ -155,7 +157,12 @@ void populateWorld()
 				if (things[i][j-1] == 1) e->SetN_left(true);
 				grid.add(e);
 			}
-			if (things[i][j] == 5) Player *player = new Player(glm::vec2(j*25.0f, i*25.0f), glm::vec2(30.0f, 30.0f), glm::vec2(15.0f, pVelocityY), Texture(), jumpHeight);
+			if (things[i][j] == 5)
+			{
+				player->SetCoordinate(glm::vec2(j*25.0f, i*25.0f));
+				startingCoord = glm::vec2(j*25.0f, i*25.0f);
+			}
+				
 		}
 	}
 
