@@ -38,7 +38,7 @@ private:
 
 	CollisionSides collision;
 	JumpState jstate;
-	float initialCoordY, jumpHeight;
+	float initialCoordY, jumpHeight, seconds_on_ground;
 	glm::vec2 initialVelocity;
 };
 

@@ -17,14 +17,17 @@
 #pragma once
 
 class Renderer
-{
+{	
 private:
-	Player player;
-	
-	
+	float aspectRatio;
 public:
 	typedef std::pair<GLdouble, GLdouble> X;
 	typedef std::pair<GLdouble, GLdouble> Y;
+
+	float screen_width, screen_height, virtual_width, virtual_height;
+
+	Renderer(float ratio);
+
 
 	void display(Player *p, std::vector<Entity*>);						//called in winmain to draw everything to the screen	
 	std::pair<X,Y> reshape(int width, int height, Player *p); //called when the window is resized

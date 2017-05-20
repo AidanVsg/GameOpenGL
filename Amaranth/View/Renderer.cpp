@@ -1,6 +1,9 @@
 
 #include "../View/Headers/Renderer.h"
 
+Renderer::Renderer(float ratio) : aspectRatio(ratio)
+{}
+
 void Renderer::display(Player *p, std::vector<Entity*> entities)
 {
 
@@ -21,13 +24,20 @@ void Renderer::display(Player *p, std::vector<Entity*> entities)
 }
 std::pair<Renderer::X, Renderer::Y> Renderer::reshape(int width, int height, Player *p)
 {
-	const float c = 270.0f;
-	GLdouble camX = p->GetCoordinate().x - c;
-	GLdouble camXWidth = p->GetCoordinate().x + c;
-	GLdouble camY = p->GetCoordinate().y - c;
-	GLdouble camYHeight = p->GetCoordinate().y + c;
+	float arNow = (float) width / height;
+
+	float w = screen_width / virtual_width;
+	float h = screen_height / virtual_height;
+	const float c = 200.0f;
+	GLdouble camX = p->GetCoordinate().x - c * w;
+	GLdouble camXWidth = p->GetCoordinate().x + c * w;
+	GLdouble camY = p->GetCoordinate().y - c * h;
+	GLdouble camYHeight = p->GetCoordinate().y + c *h;
+
+
 
 	std::pair<X, Y> cam; cam.first.first = camX; cam.first.second = camXWidth; cam.second.first = camY; cam.second.second = camYHeight;
+
 
 	glViewport(0, 0, width, height);						// Reset the current viewport
 

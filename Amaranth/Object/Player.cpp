@@ -1,12 +1,12 @@
 ﻿#include "../Object/Headers/Player.h"
 #include <iostream>
 
-Player::Player() : Entity(), jumpHeight(0.0f), jstate(JumpState::FALLING), collision(Direction::NONE, Direction::NONE), initialVelocity(velocity)
+Player::Player() : Entity(), jumpHeight(0.0f), jstate(JumpState::FALLING), collision(Direction::NONE, Direction::NONE), initialVelocity(velocity), seconds_on_ground(0)
 { }
 
 Player::Player(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, Texture tex,
 	float jumpH)
-	: Entity(coords, len, vel, tex), jstate(JumpState::FALLING), jumpHeight(jumpH), initialVelocity(velocity), collision(Direction::NONE, Direction::NONE)
+	: Entity(coords, len, vel, tex), jstate(JumpState::FALLING), jumpHeight(jumpH), initialVelocity(velocity), collision(Direction::NONE, Direction::NONE), seconds_on_ground(0)
 { }
 
 //Player::~Player()
@@ -120,6 +120,7 @@ void Player::jump()
 void Player::checkJumpState(float dt)
 {
 	this->dt = dt;
+	if (velocity.y > 80.0f) velocity.y = 80.0f;
 	if (dt > 0.15f) dt = 0.15f;
 		
 
@@ -141,7 +142,7 @@ void Player::checkJumpState(float dt)
 	case FALLING:
 
 		velocity.y = v_old + g*dt;
-		coordinate.y = c_old + ((v_old + velocity.y) / 2.0)*dt; // Use improved Euler Integration
+		coordinate.y = c_old + ((v_old + velocity.y) / 2)*dt; // Use improved Euler Integration
 		if (coordinate.y < initialCoordY)
 		{
 			if (collision.second == NONE)
@@ -167,17 +168,23 @@ void Player::checkJumpState(float dt)
 			velocity.y = -velocity.y;
 			break;
 		}
-		coordinate.y = coordinate.y + (((v_old + velocity.y) / 1.5)*dt);
+		coordinate.y = coordinate.y + (((v_old + velocity.y) / 1.4)*dt);
 		if (coordinate.y > initialCoordY + jumpHeight)
 		{
 			jstate = FALLING;
-			velocity.y = initialVelocity.y;
+			velocity.y = 15.0f;
 		}
 			
 		break;
 	case ON_GROUND:
 		if (collision.second == UP) { //TODO check if on ground for more than second, then change velocity
-			velocity.y = initialVelocity.y;
+			if (seconds_on_ground > 0.5)
+			{
+				velocity.y = initialVelocity.y;
+				seconds_on_ground = 0.0f;
+				break;
+			}
+			seconds_on_ground += dt;
 			break;
 		}
 		else

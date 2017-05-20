@@ -7,24 +7,29 @@
 //#include "../Object/Headers/World.h" //Deprecated. Using a Spatial Grid to collect world objects now.
 #include "../View/Headers/Texture.h"
 #include "SpatialHash.h"
+#include <fstream>
+#include <string>
+#include <sstream>
 
 #include "../glm/glm/glm.hpp"
 #include "../glm/glm/gtc/matrix_transform.hpp"
 #include "../glm/glm/gtc/type_ptr.hpp"
-float worldWidth = 5000;
-float worldHeight = 5000;
+float worldWidth = 2500;
+float worldHeight = 2500;
+float jumpHeight = 70.0f;
+float pVelocityY = 18.0f;
 
-Player *player = new Player(glm::vec2(0.0f,80.0f),glm::vec2(25.0f,25.0f), glm::vec2(15.0f,15.0f) , Texture(), 50.0f);
-Renderer renderer;
-//World world; //Deprecated. Using a Spatial Grid to collect world objects now.
-SpatialHash grid(worldWidth, worldHeight,200);
-
-
-GLuint currentWidth = 1280, currentHeight = 768; //Current resolution
-GLuint targetWidth = 1280, targetHeight = 768; //Target resolution
+GLuint currentWidth = 1024, currentHeight = 768; //Current resolution
+GLuint targetWidth = 1024, targetHeight = 1024; //Target resolution
+GLfloat AR = ((float)targetWidth / targetHeight);
 double timerFrequencyRecip = 0.000003;
 float deltaT; //Delta time between each update cycle
 __int64 prevTime;
+
+Player *player = new Player(glm::vec2(0.0f, 80.0f), glm::vec2(30.0f, 30.0f), glm::vec2(15.0f, pVelocityY), Texture(), jumpHeight);
+Renderer renderer(AR);
+//World world; //Deprecated. Using a Spatial Grid to collect world objects now.
+SpatialHash grid(worldWidth, worldHeight, 200);
 
 enum GameState
 {
@@ -35,6 +40,7 @@ enum GameState
 
 double timeSimulation(); //Simulates the delta of time for each update cycle
 void doCollisions();
+void processKeys_external();
 void update(); //Game update cycle to process objects on screen, keyboard, resolve collision, check jumping
 void render(int width, int height); //Renders the objects on screen
 void populateWorld(); //Function to populate the game world, adding objects to grid
@@ -55,17 +61,24 @@ void update()
 {		
 	collected = grid.collect(cam.first.first, cam.first.second, cam.second.first, cam.second.second);
 
+	processKeys_external();
 	player->processKeys();											//Process keyboard
 	doCollisions();													//Collision detection
 	player->checkJumpState(timeSimulation());						//Check if player is jumping/falling/on-ground
 
+	renderer.screen_height = currentHeight; renderer.screen_width = currentWidth; renderer.virtual_height = targetHeight; renderer.virtual_width = targetWidth;
 	cam = renderer.reshape(currentWidth, currentHeight, player);	//Sets Perspective GL Screen in respect to player coordinates
 	renderer.display(player, collected);							// Draw the scene
 	if (player->GetCoordinate().x < -100 || player->GetCoordinate().y < -100)
 	{
 		delete(player);
-		player = new Player(glm::vec2(0.0f, 80.0f), glm::vec2(25.0f, 25.0f), glm::vec2(15.0f, 15.0f), Texture(), 50.0f);
+		player = new Player(glm::vec2(0.0f, 80.0f), glm::vec2(25.0f, 25.0f), glm::vec2(15.0f, pVelocityY), Texture(), jumpHeight);
 	}
+}
+
+void processKeys_external()
+{
+	if (player->keys[0x52]) player = new Player(glm::vec2(0.0f, 80.0f), glm::vec2(25.0f, 25.0f), glm::vec2(15.0f, pVelocityY), Texture(), jumpHeight);
 }
 
 void render(int width, int height)
@@ -89,31 +102,93 @@ void doCollisions()
 
 void populateWorld()
 {
-	
-	
+	//using namespace std;
+	//ofstream out;
+	//out.open("file.txt");
 
-	for (float i = 0.0f; i < 600; i+=25.0f)
+	//for (int i = 0; i <= worldHeight/25; i++)
+	//{
+	//	for (int j = 0; j <= worldWidth/25; j++)
+	//	{
+	//		out << "0 ";
+	//	}
+	//	out << endl;
+	//}
+	int row = 0, col = 0;
+	int tileCode;
+	std::string line;
+	std::ifstream fstream("file.txt");
+	std::vector<std::vector<GLuint>> tileData;
+
+	int things[99][99];
+	if (fstream)
 	{
-		Entity *e = new Entity(glm::vec2(i, 0.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
-		e->SetN_right(true); e->SetN_left(true);
-		//world.addEntity(e); 
-		grid.add(e);
+		while (std::getline(fstream, line)) // Read each line from level
+		{
+			col = 0;
+			std::istringstream sstream(line);
+			//std::vector<GLuint> row;
+			while (sstream >> tileCode) 
+			{
+				if (tileCode == 1 || tileCode == 2)
+				{
+					things[100-row][col] = tileCode;
+					//Entity *e = new Entity(glm::vec2(col*25.0f, (100-row)*25.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
+					//grid.add(e);
+				}
+				col++;
+			}
+		row++;
+		}
 	}
 
-	for (float i = 0.0f; i < 200; i += 25.0f)
-	{		
-		Entity *e2 = new Entity(glm::vec2(360.0f, i), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
-		e2->SetN_up(true); e2->SetN_down(true);
-		//world.addEntity(e2);
-		grid.add(e2);		
+	for (int i = 0; i < 99; i++)
+	{
+		for (int j = 0; j < 99; j++)
+		{
+			if (things[i][j] == 1)
+			{
+				Entity *e = new Entity(glm::vec2(j*25.0f, i*25.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
+				if (things[i + 1][j] == 1) e->SetN_up(true);
+				if (things[i - 1][j] == 1) e->SetN_down(true);
+				if (things[i][j+1] == 1) e->SetN_right(true);
+				if (things[i][j-1] == 1) e->SetN_left(true);
+				grid.add(e);
+			}
+			if (things[i][j] == 5) Player *player = new Player(glm::vec2(j*25.0f, i*25.0f), glm::vec2(30.0f, 30.0f), glm::vec2(15.0f, pVelocityY), Texture(), jumpHeight);
+		}
 	}
-	Entity *e3 = new Entity(glm::vec2(290.0f, 120.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
-	Entity *e4 = new Entity(glm::vec2(150.0f, 40.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
 
-	//world.addEntity(e3);
-	grid.add(e3);
-	//world.addEntity(e4);
-	grid.add(e4);
+	//for (float i = 0.0f; i <= 600; i+=25.0f)
+	//{
+	//	Entity *e = new Entity(glm::vec2(i, 0.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
+	//	e->SetN_right(true); e->SetN_left(true);
+	//	if (i < 23.0f) e->SetN_left(false);
+	//	if (i > 590.0f) e->SetN_right(false);
+
+	//	grid.add(e);
+	//}
+
+	//for (float i = 0.0f; i <= 200; i += 25.0f)
+	//{		
+	//	Entity *e2 = new Entity(glm::vec2(360.0f, i), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
+	//	e2->SetN_up(true); e2->SetN_down(true);
+	//	if (i < 23.0f) e2->SetN_down(false);
+	//	if (i > 190.0f) e2->SetN_up(false);
+	//	//world.addEntity(e2);
+	//	grid.add(e2);		
+	//}
+	//Entity *e3 = new Entity(glm::vec2(290.0f, 120.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
+	//Entity *e4 = new Entity(glm::vec2(150.0f, 40.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
+	//Entity *e5 = new Entity(glm::vec2(230.0f, 60.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
+
+
+
+	////world.addEntity(e3);
+	//grid.add(e3);
+	////world.addEntity(e4);
+	//grid.add(e4);
+	//grid.add(e5);
 
 	//world.addEntity(e);
 	//world.addEntity(e);
@@ -224,8 +299,8 @@ LRESULT CALLBACK WndProc(HWND	hWnd,			// Handle For This Window
 	case WM_SIZE:								// Resize The OpenGL Window
 	{
 		renderer.reshape(LOWORD(lParam), HIWORD(lParam), player);  // LoWord=Width, HiWord=Height
-		if (LOWORD(lParam) >= targetWidth) 	currentWidth = LOWORD(lParam);
-		if(HIWORD(lParam) >= targetHeight) currentHeight = HIWORD(lParam);
+		currentWidth = LOWORD(lParam);
+	    currentHeight = HIWORD(lParam);
 		
 		return 0;								// Jump Back
 	}
