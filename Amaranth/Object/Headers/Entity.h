@@ -7,6 +7,7 @@
 #include "../glm/glm/gtc/matrix_transform.hpp"
 #include "../glm/glm/gtc/type_ptr.hpp"
 #include <iostream>
+#include "../../glew/include/GL/glew.h"
 
 
 #define GET(Type, MemberName, FaceName) \
@@ -22,7 +23,7 @@ class Entity {
 public:
 	//CONSTRUCTORS
 	Entity();
-	Entity(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, Texture tex);
+	Entity(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, GLuint texID);
 
 	typedef glm::vec2 GridCoordinates;
 
@@ -33,6 +34,7 @@ public:
 		GET(bool, nD, N_down)
 		GET(bool, nL, N_left)
 		GET(bool, nR, N_right)
+		GET(GLuint, textureID, TextureID)
 
 		SET(glm::vec2, coordinate, Coordinate)
 		SET(glm::vec2, length, Length)
@@ -41,6 +43,7 @@ public:
 		SET(bool, nD, N_down)
 		SET(bool, nL, N_left)
 		SET(bool, nR, N_right)
+		SET(GLuint, textureID, TextureID)
 
 		//friend Entity operator+(const Entity &e1, const Entity &e2);
 
@@ -49,7 +52,7 @@ protected:
 	float healthPoints;
 	bool nU, nD, nR, nL;
 	glm::vec2 coordinate, length, velocity;
-	Texture texture;
+	GLuint textureID;
 	std::vector<GridCoordinates> grids;
 };
 

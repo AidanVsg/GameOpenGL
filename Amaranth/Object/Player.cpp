@@ -1,12 +1,12 @@
 ﻿#include "../Object/Headers/Player.h"
 #include <iostream>
 
-Player::Player() : Entity(), jumpHeight(0.0f), jstate(JumpState::FALLING), collision(Direction::NONE, Direction::NONE), initialVelocity(velocity), seconds_on_ground(0)
+Player::Player() : Entity(), jumpHeight(0.0f), jstate(JumpState::FALLING), collision(Direction::NONE, Direction::NONE), initialVelocity(velocity), seconds_on_ground(0), moving(Moving::OTHER)
 { }
 
-Player::Player(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, Texture tex,
+Player::Player(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, GLuint texID,
 	float jumpH)
-	: Entity(coords, len, vel, tex), jstate(JumpState::FALLING), jumpHeight(jumpH), initialVelocity(velocity), collision(Direction::NONE, Direction::NONE), seconds_on_ground(0)
+	: Entity(coords, len, vel, texID), jstate(JumpState::FALLING), jumpHeight(jumpH), initialVelocity(velocity), collision(Direction::NONE, Direction::NONE), seconds_on_ground(0), moving(Moving::OTHER)
 { }
 
 //Player::~Player()
@@ -16,6 +16,7 @@ Player::Player(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, Texture tex,
 
 void Player::processKeys()
 {
+	moving = Moving::OTHER;
 	if (keys[VK_UP] || keys[0x57])
 	{
 		jump();
@@ -101,9 +102,28 @@ void Player::collisionSide(Entity* &e)
 	}
 }
 
-void Player::moveRight(){ if (collision.first != Direction::LEFT) coordinate.x += velocity.x*dt;}
+void Player::moveRight() {
+	if (collision.first != Direction::LEFT)
+	{
+		moving = Moving::MRIGHT;
+		if (jstate == JUMPING) textureID = t.textures["pCharRU"];
+		else if (jstate == FALLING) textureID = t.textures["pCharRD"];
+		else textureID = t.textures["pCharR"];
+		coordinate.x += velocity.x*dt;
+	}
+}
 
-void Player::moveLeft(){ if (collision.first != Direction::RIGHT) coordinate.x -= velocity.x*dt;}
+
+void Player::moveLeft() {
+	if (collision.first != Direction::RIGHT)
+	{
+		moving = Moving::MLEFT;
+		if (jstate == JUMPING) textureID = t.textures["pCharLU"];
+		else if (jstate == FALLING) textureID = t.textures["pCharLD"];
+		else textureID = t.textures["pCharL"];
+		coordinate.x -= velocity.x*dt;
+	}
+}
 
 void Player::jump()
 {
@@ -120,7 +140,7 @@ void Player::jump()
 void Player::checkJumpState(float dt)
 {
 	this->dt = dt;
-	if (velocity.y > 80.0f) velocity.y = 80.0f;
+	if (velocity.y > 50.0f) velocity.y = 50.0f;
 	if (dt > 0.15f) dt = 0.15f;
 		
 
@@ -140,9 +160,25 @@ void Player::checkJumpState(float dt)
 	switch (jstate)
 	{
 	case FALLING:
+		/*if(moving == Moving::MLEFT) 
+			textureID = t.textures["pCharL"];
+		else if (moving == Moving::MRIGHT) 
+			textureID = t.textures["pCharR"];
+		else
+		textureID = t.textures["pCharD"];*/
+		if (moving == Moving::OTHER) textureID = t.textures["pCharD"];
+
+		if (collision.second == DOWN)
+		{
+			v_old = -initialVelocity.y;
+
+		}
+			
 
 		velocity.y = v_old + g*dt;
 		coordinate.y = c_old + ((v_old + velocity.y) / 2)*dt; // Use improved Euler Integration
+
+				
 		if (coordinate.y < initialCoordY)
 		{
 			if (collision.second == NONE)
@@ -156,7 +192,13 @@ void Player::checkJumpState(float dt)
 		}
 		break;
 	case JUMPING:
-
+		/*if (moving == Moving::MLEFT)
+			textureID = t.textures["pCharL"];
+		else if (moving == Moving::MRIGHT)
+			textureID = t.textures["pCharR"];
+		else
+			textureID = t.textures["pCharU"];*/
+		if (moving == Moving::OTHER) textureID = t.textures["pCharU"];
 		//fc = (jumpHeight - coordinate.y) / jumpHeight; // Find point of collision
 		//ndt = fc*dt;			 // Calculate remaining timestep
 		velocity.y = v_old + g*dt;  // Reintegrate
@@ -165,8 +207,8 @@ void Player::checkJumpState(float dt)
 		if (collision.second == DOWN)
 		{
 			jstate = FALLING;
-			velocity.y = initialVelocity.y;
-			velocity.y = -velocity.y;
+			//velocity.y = initialVelocity.y;
+			//velocity.y = -velocity.y;
 			break;
 		}
 		coordinate.y = coordinate.y + (((v_old + velocity.y) / 1.4)*dt);
@@ -186,7 +228,9 @@ void Player::checkJumpState(float dt)
 			
 		break;
 	case ON_GROUND:
-		if (collision.second == UP) { //TODO check if on ground for more than second, then change velocity
+		if (moving == Moving::OTHER) textureID = t.textures["pChar"];
+
+		if (collision.second == UP) { //check if on ground for more than second, then change velocity
 			if (seconds_on_ground > 0.5)
 			{
 				velocity.y = initialVelocity.y;
@@ -202,8 +246,9 @@ void Player::checkJumpState(float dt)
 			velocity.y = initialVelocity.y;
 			break;
 		}
-
+		
 	}
+	moving == Moving::OTHER;
 }
 
 

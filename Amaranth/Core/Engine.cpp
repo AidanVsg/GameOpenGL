@@ -6,6 +6,7 @@
 #include "../Object/Headers/Player.h"
 //#include "../Object/Headers/World.h" //Deprecated. Using a Spatial Grid to collect world objects now.
 #include "../View/Headers/Texture.h"
+#include "tgaload.h"
 #include "SpatialHash.h"
 #include <fstream>
 #include <string>
@@ -28,7 +29,11 @@ __int64 prevTime;
 glm::vec2 startingCoord;
 glm::vec2 pSize(25.0f, 25.0f);
 
-Player *player = new Player(glm::vec2(0.0f, 80.0f), pSize, glm::vec2(15.0f, pVelocityY), Texture(), jumpHeight);
+Texture t;
+GLuint plChar;
+
+//Player* player = new Player(glm::vec2(0.0f, 80.0f), pSize, glm::vec2(15.0f, pVelocityY), plChar , jumpHeight);
+Player* player = new Player();
 Renderer renderer(AR);
 //World world; //Deprecated. Using a Spatial Grid to collect world objects now.
 SpatialHash grid(worldWidth, worldHeight, 200);
@@ -37,9 +42,15 @@ enum GameState
 {
 	MENU,
 	ACTIVE,
-	EDITOR,
+	SETUP,
 };
 
+GameState stateOfThisGame;
+
+void loadTextures();
+void checkGameState();
+void generateMapFile();
+void setCollisionFlags(int things[99][99], Entity* e, int i, int j);
 double timeSimulation(); //Simulates the delta of time for each update cycle
 void doCollisions();
 void processKeys_external();
@@ -59,6 +70,42 @@ HGLRC		hRC = NULL;		// Permanent Rendering Context
 HWND		hWnd = NULL;		// Holds Our Window Handle
 HINSTANCE	hInstance;		// Holds The Instance Of The Application
 
+void checkGameState()
+{
+	if (stateOfThisGame == GameState::SETUP)
+	{
+		player = new Player(glm::vec2(0.0f, 80.0f), pSize, glm::vec2(15.0f, pVelocityY), plChar, jumpHeight); 
+		std::cout << "Player created." << std::endl;
+
+		player->SetTextures(t);
+		std::cout << "Player texture list set." << std::endl;
+		
+		std::cout << "Populating world." << std::endl; 
+		populateWorld();
+
+		stateOfThisGame == GameState::ACTIVE;
+	}	
+	else if (stateOfThisGame == GameState::ACTIVE)
+	{
+		update();
+	}
+	else
+	{
+		renderer.screen_height = currentHeight; renderer.screen_width = currentWidth; renderer.virtual_height = targetHeight; renderer.virtual_width = targetWidth;
+
+		Entity *start = new Entity(glm::vec2(25.0f, 25.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.00f, 0.0f), t.textures["start"]);
+		Entity *exit = new Entity(glm::vec2(25.0f, 60.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.00f, 0.0f), t.textures["start"]);
+
+		std::vector<Entity*> buttons;
+		buttons.push_back(start);
+		buttons.push_back(exit);
+		renderer.displayMenu(buttons);
+
+		delete(start);
+		delete(exit);
+	}
+}
+
 void update()
 {		
 	collected = grid.collect(cam.first.first, cam.first.second, cam.second.first, cam.second.second);
@@ -74,19 +121,59 @@ void update()
 	if (player->GetCoordinate().x < -100 || player->GetCoordinate().y < -100)
 	{
 		delete(player);
-		player = new Player(startingCoord, pSize, glm::vec2(15.0f, pVelocityY), Texture(), jumpHeight);
+		player = new Player(startingCoord, pSize, glm::vec2(15.0f, pVelocityY), plChar, jumpHeight);
+		player->SetTextures(t);
+		std::cout << "Player reset." << std::endl;
 	}
+}
+
+void loadTextures()
+{
+	std::cout << "Loading textures." << std::endl;
+
+	t.textures["pChar"] = tgaLoadAndBind("player.tga", TGA_ALPHA); plChar = tgaLoadAndBind("player.tga", TGA_ALPHA);
+	t.textures["pCharL"] = tgaLoadAndBind("player_left.tga", TGA_ALPHA);
+	t.textures["pCharLU"] = tgaLoadAndBind("player_leftUp.tga", TGA_ALPHA);
+	t.textures["pCharLD"] = tgaLoadAndBind("player_leftDown.tga", TGA_ALPHA);
+	t.textures["pCharR"] = tgaLoadAndBind("player_right.tga", TGA_ALPHA);
+	t.textures["pCharRU"] = tgaLoadAndBind("player_rightUp.tga", TGA_ALPHA);
+	t.textures["pCharRD"] = tgaLoadAndBind("player_rightDown.tga", TGA_ALPHA);
+	t.textures["pCharU"] = tgaLoadAndBind("player_up.tga", TGA_ALPHA);
+	t.textures["pCharD"] = tgaLoadAndBind("player_down.tga", TGA_ALPHA);
+	t.textures["grass"] = tgaLoadAndBind("grass.tga", TGA_ALPHA);
+	t.textures["dirt"] = tgaLoadAndBind("dirt.tga", TGA_ALPHA);
+	t.textures["start"] = tgaLoadAndBind("start.tga", TGA_ALPHA);
+
+	std::cout << "Textures loaded." << std::endl;
+	
+	renderer.SetTextureList(t);
 }
 
 void processKeys_external()
 {
-	if (player->keys[0x52]) player = new Player(startingCoord, pSize, glm::vec2(15.0f, pVelocityY), Texture(), jumpHeight);
+	if (player->keys[0x52])
+	{
+		player = new Player(startingCoord, pSize, glm::vec2(15.0f, pVelocityY), plChar, jumpHeight);
+		player->SetTextures(t);
+	}
 }
 
 void render(int width, int height)
 {
 	cam = renderer.reshape(width, height, player);	// Set Up Our Perspective GL Screen
 	renderer.init();
+}
+
+void setCollisionFlags(int things[99][99], Entity* e, int i, int j )
+{
+	if (things[i + 1][j] == 1 || things[i + 1][j] == 2)
+		e->SetN_up(true);
+	if (things[i - 1][j] == 1 || things[i - 1][j] == 2)
+		e->SetN_down(true);
+	if (things[i][j + 1] == 1 || things[i][j + 1] == 2)
+		e->SetN_right(true);
+	if (things[i][j - 1] == 1 || things[i][j - 1] == 2)
+		e->SetN_left(true);
 }
 
 void doCollisions()
@@ -102,24 +189,31 @@ void doCollisions()
 	}
 }
 
+void generateMapFile()
+{
+	using namespace std;
+	ofstream out;
+
+	out.open("level_template.amap", fstream::out);
+
+	for (int i = 0; i <= worldHeight/25; i++)
+	{
+		for (int j = 0; j <= worldWidth/25; j++)
+		{
+			out << "0 ";
+		}
+		out << endl;
+	}
+}
+
 void populateWorld()
 {
-	//using namespace std;
-	//ofstream out;
-	//out.open("file.txt");
-
-	//for (int i = 0; i <= worldHeight/25; i++)
-	//{
-	//	for (int j = 0; j <= worldWidth/25; j++)
-	//	{
-	//		out << "0 ";
-	//	}
-	//	out << endl;
-	//}
 	int row = 0, col = 0;
 	int tileCode;
 	std::string line;
-	std::ifstream fstream("file.txt");
+	char* levelName = "level1.amap";
+	std::cout << "Loading " << levelName << "." << std::endl;
+	std::ifstream fstream(levelName);
 	std::vector<std::vector<GLuint>> tileData;
 
 	int things[99][99];
@@ -129,14 +223,11 @@ void populateWorld()
 		{
 			col = 0;
 			std::istringstream sstream(line);
-			//std::vector<GLuint> row;
 			while (sstream >> tileCode) 
 			{
-				if (tileCode == 1 || tileCode == 5)
+				if (tileCode == 1 || tileCode == 2 || tileCode == 5)
 				{
 					things[100-row][col] = tileCode;
-					//Entity *e = new Entity(glm::vec2(col*25.0f, (100-row)*25.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
-					//grid.add(e);
 				}
 				col++;
 			}
@@ -150,76 +241,25 @@ void populateWorld()
 		{
 			if (things[i][j] == 1)
 			{
-				Entity *e = new Entity(glm::vec2(j*25.0f, i*25.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
-				if (things[i + 1][j] == 1) e->SetN_up(true);
-				if (things[i - 1][j] == 1) e->SetN_down(true);
-				if (things[i][j+1] == 1) e->SetN_right(true);
-				if (things[i][j-1] == 1) e->SetN_left(true);
+				Entity *e = new Entity(glm::vec2(j*25.0f, i*25.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), t.textures["dirt"]);
+				setCollisionFlags(things, e, i, j);
+				grid.add(e);
+			}
+			if (things[i][j] == 2)
+			{
+				Entity *e = new Entity(glm::vec2(j*25.0f, i*25.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), t.textures["grass"]);
+				setCollisionFlags(things, e, i, j);
 				grid.add(e);
 			}
 			if (things[i][j] == 5)
 			{
 				player->SetCoordinate(glm::vec2(j*25.0f, i*25.0f));
 				startingCoord = glm::vec2(j*25.0f, i*25.0f);
+				std::cout << "Starting player coordinate set." << std::endl;
 			}
 				
 		}
 	}
-
-	//for (float i = 0.0f; i <= 600; i+=25.0f)
-	//{
-	//	Entity *e = new Entity(glm::vec2(i, 0.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
-	//	e->SetN_right(true); e->SetN_left(true);
-	//	if (i < 23.0f) e->SetN_left(false);
-	//	if (i > 590.0f) e->SetN_right(false);
-
-	//	grid.add(e);
-	//}
-
-	//for (float i = 0.0f; i <= 200; i += 25.0f)
-	//{		
-	//	Entity *e2 = new Entity(glm::vec2(360.0f, i), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
-	//	e2->SetN_up(true); e2->SetN_down(true);
-	//	if (i < 23.0f) e2->SetN_down(false);
-	//	if (i > 190.0f) e2->SetN_up(false);
-	//	//world.addEntity(e2);
-	//	grid.add(e2);		
-	//}
-	//Entity *e3 = new Entity(glm::vec2(290.0f, 120.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
-	//Entity *e4 = new Entity(glm::vec2(150.0f, 40.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
-	//Entity *e5 = new Entity(glm::vec2(230.0f, 60.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture());
-
-
-
-	////world.addEntity(e3);
-	//grid.add(e3);
-	////world.addEntity(e4);
-	//grid.add(e4);
-	//grid.add(e5);
-
-	//world.addEntity(e);
-	//world.addEntity(e);
-	//world.addEntity(e);
-	//world.addEntity(e);
-	//world.addEntity(e);
-	//world.addEntity(e);
-	//world.addEntity(e);
-
-
-
-
-	//world.addEntity(Entity(glm::vec2(0.0f, 0.0f), glm::vec2(600.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture()));
-	//world.addEntity(Entity(glm::vec2(300.0f, 50.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
-	//world.addEntity(Entity(glm::vec2(400.0f, 80.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
-	//world.addEntity(Entity(glm::vec2(575.0f, 0.0f), glm::vec2(25.0f, 600.0f), glm::vec2(0.08f, 0.033f), Texture()));
-	//grid.add(Entity(glm::vec2(0.0f, 0.0f), glm::vec2(600.0f, 25.0f), glm::vec2(0.08f, 0.033f), Texture()));
-	//grid.add(Entity(glm::vec2(300.0f, 50.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
-	//grid.add(Entity(glm::vec2(400.0f, 80.0f), glm::vec2(30.0f, 15.0f), glm::vec2(0.08f, 0.033f), Texture()));
-	//grid.add(Entity(glm::vec2(575.0f, 0.0f), glm::vec2(25.0f, 600.0f), glm::vec2(0.08f, 0.033f), Texture()));
-
-	//std::vector<std::pair<int, int>> NPCcoords; NPCcoords.push_back({ 0,0 }); NPCcoords.push_back({ 0,25 }); NPCcoords.push_back({ 25,25 }); NPCcoords.push_back({ 25, 0 }); NPCcoords.push_back({ 0, 0 });
-	//world.addEntity(NPC(250, 0, true, NPCcoords));
-	//world.addEntity(NPC(500, 0, true, NPCcoords));
 }
 
 double timeSimulation()
@@ -276,8 +316,8 @@ int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
 		else										// If There Are No Messages
 		{
 				if (player->keys[VK_ESCAPE]) done = true;
-				update();
 
+				checkGameState();
 				SwapBuffers(hDC);							// Swap Buffers (Double Buffering)
 			
 		}
@@ -507,8 +547,12 @@ bool CreateGLWindow(char* title, int width, int height)
 	SetForegroundWindow(hWnd);						// Slightly Higher Priority
 	SetFocus(hWnd);									// Sets Keyboard Focus To The Window
 
+	stateOfThisGame = GameState::MENU;
+
+	std::cout << "Initial screen rendering." << std::endl;
 	render(width, height);
-	populateWorld();
+	
+	loadTextures();
 
 	return true;									// Success
 }

@@ -5,6 +5,7 @@
 #include "../Object/Headers/Player.h"
 #include "../Object/Headers/World.h"
 #include "../Core/SpatialHash.h"
+#include "Texture.h"
 #include <windows.h>		// Header file for Windows
 //#include <gl\gl.h>			// Header file for the OpenGL32 Library
 //#include <gl\glu.h>			// Header file for the GLu32 Library
@@ -16,13 +17,25 @@
 
 #pragma once
 
+#define GET(Type, MemberName, FaceName) \
+          Type Get##FaceName() const { \
+             return MemberName; \
+          }
+#define SET(Type, MemberName, FaceName) \
+            void Set##FaceName(const Type &value) { \
+                MemberName = value; \
+            }
+
 class Renderer
 {	
 private:
 	float aspectRatio;
+	Texture texture;
 public:
 	typedef std::pair<GLdouble, GLdouble> X;
 	typedef std::pair<GLdouble, GLdouble> Y;
+
+	SET(Texture, texture, TextureList)
 
 	float screen_width, screen_height, virtual_width, virtual_height;
 
@@ -33,6 +46,6 @@ public:
 	std::pair<X,Y> reshape(int width, int height, Player *p); //called when the window is resized
 	void init();										//called in winmain when the program starts.									//called in winmain to update variables
 	void drawEntity(Entity *entity);			//draws an Entity (Player, NPC)
-
+	void displayMenu(std::vector<Entity*> entities);
 };
 #endif

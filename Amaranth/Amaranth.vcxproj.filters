@@ -53,6 +53,9 @@
     <ClCompile Include="Core\SpatialHash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Core\tgaload.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Object\Headers\Entity.h">
@@ -79,5 +82,14 @@
     <ClInclude Include="Core\SpatialHash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="View\Headers\nvImage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\tgaload.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="level1.amap" />
   </ItemGroup>
 </Project>

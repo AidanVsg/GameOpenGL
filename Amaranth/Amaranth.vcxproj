@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Engine.cpp" />
+    <ClCompile Include="Core\tgaload.cpp" />
     <ClCompile Include="Object\Entity.cpp" />
     <ClCompile Include="Object\NPC.cpp" />
     <ClCompile Include="Object\Player.cpp" />
@@ -30,14 +31,19 @@
     <ClCompile Include="Object\World.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Core\tgaload.h" />
     <ClInclude Include="Object\Headers\Entity.h" />
     <ClInclude Include="Object\Headers\NPC.h" />
     <ClInclude Include="Object\Headers\Player.h" />
     <ClInclude Include="Object\Headers\Prop.h" />
     <ClInclude Include="Core\SpatialHash.h" />
+    <ClInclude Include="View\Headers\nvImage.h" />
     <ClInclude Include="View\Headers\Renderer.h" />
     <ClInclude Include="View\Headers\Texture.h" />
     <ClInclude Include="Object\Headers\World.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="level1.amap" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{060F7DDA-ADD9-4904-9D5C-A68DEA577E3E}</ProjectGuid>

@@ -3,7 +3,7 @@
 NPC::NPC() : Entity(), isAlly(false)
 { }
 
-NPC::NPC(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, Texture tex,
+NPC::NPC(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, GLuint texID,
 	bool ally)
-	: Entity(coords, len, vel, tex), isAlly(ally)
+	: Entity(coords, len, vel, texID), isAlly(ally)
 { }

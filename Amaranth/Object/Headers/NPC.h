@@ -8,7 +8,7 @@ private:
 	bool isAlly;
 public:
 	NPC();
-	NPC(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, Texture tex, bool ally);
+	NPC(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, GLuint texID, bool ally);
 };
 
 #endif  //_NPC_H
