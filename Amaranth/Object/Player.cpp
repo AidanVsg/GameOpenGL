@@ -35,10 +35,10 @@ void Player::processKeys()
 	}
 }
 
-bool Player::checkCollision(Entity* &e)
+bool Player::checkCollision(Entity &e)
 {
-	bool on_x = coordinate.x + length.x >= e->GetCoordinate().x && e->GetCoordinate().x + e->GetLength().x >= coordinate.x;
-	bool on_y = coordinate.y + length.y >= e->GetCoordinate().y && e->GetCoordinate().y + e->GetLength().y >= coordinate.y;
+	bool on_x = coordinate.x + length.x >= e.GetCoordinate().x && e.GetCoordinate().x + e.GetLength().x >= coordinate.x;
+	bool on_y = coordinate.y + length.y >= e.GetCoordinate().y && e.GetCoordinate().y + e.GetLength().y >= coordinate.y;
 
 	return on_x && on_y;
 }
@@ -48,13 +48,13 @@ void Player::resetCollisions()
 	collision = Player::CollisionSides(Player::Direction::NONE, Player::Direction::NONE);
 }
 
-void Player::collisionSide(Entity* &e)
+void Player::collisionSide(Entity &e)
 {
 	glm::vec2 pHalf(length.x / 2, length.y / 2);
 	glm::vec2 pCenter(coordinate.x + pHalf.x, coordinate.y + pHalf.y);
 
-	glm::vec2 eHalf(e->GetLength().x / 2, e->GetLength().y / 2);
-	glm::vec2 eCenter(e->GetCoordinate().x + eHalf.x, e->GetCoordinate().y + eHalf.y);
+	glm::vec2 eHalf(e.GetLength().x / 2, e.GetLength().y / 2);
+	glm::vec2 eCenter(e.GetCoordinate().x + eHalf.x, e.GetCoordinate().y + eHalf.y);
 
 	glm::vec2 difference = pCenter - eCenter;
 	glm::vec2 clamped = glm::clamp(difference, -eHalf, eHalf);
@@ -84,19 +84,19 @@ void Player::collisionSide(Entity* &e)
 	switch (best_match)
 	{
 	case 0:
-		if(!e->GetN_up())
+		if(!e.GetN_up())
 			collision.second = (Direction)best_match;
 		break; 
 	case 2:
-		if (!e->GetN_down())
+		if (!e.GetN_down())
 			collision.second = (Direction)best_match;
 		break;
 	case 1:
-		if (!e->GetN_right())
+		if (!e.GetN_right())
 			collision.first = (Direction)best_match;
 		break;
 	case 3:
-		if (!e->GetN_left())
+		if (!e.GetN_left())
 			collision.first = (Direction)best_match;
 		break;
 	}
@@ -168,39 +168,32 @@ void Player::checkJumpState(float dt)
 		textureID = t.textures["pCharD"];*/
 		if (moving == Moving::OTHER) textureID = t.textures["pCharD"];
 
-		if (collision.second == DOWN)
-		{
-			v_old = -initialVelocity.y;
 
-		}
-			
+		if (collision.second == DOWN)
+			v_old = -initialVelocity.y;			
 
 		velocity.y = v_old + g*dt;
 		coordinate.y = c_old + ((v_old + velocity.y) / 2)*dt; // Use improved Euler Integration
 
 				
-		if (coordinate.y < initialCoordY)
+		if (coordinate.y <= initialCoordY)
 		{
 			if (collision.second == NONE)
 			{
-				jstate == FALLING;
+				jstate = FALLING;
 			}
-			else {
+			else 
+			{
 				jstate = ON_GROUND;
+				coordinate.y = initialCoordY;
 				velocity.y = -velocity.y;
 			}
 		}
 		break;
 	case JUMPING:
-		/*if (moving == Moving::MLEFT)
-			textureID = t.textures["pCharL"];
-		else if (moving == Moving::MRIGHT)
-			textureID = t.textures["pCharR"];
-		else
-			textureID = t.textures["pCharU"];*/
+
 		if (moving == Moving::OTHER) textureID = t.textures["pCharU"];
-		//fc = (jumpHeight - coordinate.y) / jumpHeight; // Find point of collision
-		//ndt = fc*dt;			 // Calculate remaining timestep
+
 		velocity.y = v_old + g*dt;  // Reintegrate
 		if (velocity.y < 0) 
 			jstate = FALLING;
@@ -231,6 +224,7 @@ void Player::checkJumpState(float dt)
 		if (moving == Moving::OTHER) textureID = t.textures["pChar"];
 
 		if (collision.second == UP) { //check if on ground for more than second, then change velocity
+			coordinate.y = initialCoordY;
 			if (seconds_on_ground > 0.5)
 			{
 				velocity.y = initialVelocity.y;

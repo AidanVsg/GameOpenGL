@@ -1,19 +1,21 @@
 
 #include "../View/Headers/Renderer.h"
 
-Renderer::Renderer(float ratio) : aspectRatio(ratio)
+Renderer::Renderer(GLfloat width, GLfloat height) : targetWidth(width), targetHeight(height)
 {}
 
-void Renderer::display(Player *p, std::vector<Entity*> entities)
+void Renderer::display(Player* p, std::vector<Entity> entities)
 {
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glLoadIdentity();
 
+	drawBackground();
+
 	drawEntity(p);
 
-	for (Entity *e : entities)
+	for (Entity e : entities)
 	{
 		drawEntity(e);
 	}
@@ -22,10 +24,10 @@ void Renderer::display(Player *p, std::vector<Entity*> entities)
 
 }
 
-void Renderer::displayMenu(std::vector<Entity*> entities)
+void Renderer::displayMenu(GLuint currentWidth, GLuint currentHeight, std::vector<Entity> entities)
 {
-	float w = screen_width / virtual_width;
-	float h = screen_height / virtual_height;
+	GLfloat w = (GLfloat)currentWidth / targetWidth;
+	GLfloat h = (GLfloat)currentHeight / targetHeight;
 	const float c = 200.0f;
 	GLdouble camX = 0;
 	GLdouble camXWidth = 0 + c * w;
@@ -33,12 +35,12 @@ void Renderer::displayMenu(std::vector<Entity*> entities)
 	GLdouble camYHeight = 0 + c *h;
 
 
-	glViewport(0, 0, screen_width, screen_height);						// Reset the current viewport
+	glViewport(0, 0, currentWidth, currentHeight);						// Reset the current viewport
 
 	glMatrixMode(GL_PROJECTION);						// select the projection matrix stack
 	glLoadIdentity();									// reset the top of the projection matrix to an identity matrix
 
-	gluOrtho2D(camX, camXWidth, camY, camYHeight);           // set the coordinate system for the window
+	gluOrtho2D(0, currentWidth, 0, currentHeight);           // set the coordinate system for the window
 
 	glMatrixMode(GL_MODELVIEW);							// Select the modelview matrix stack
 	glLoadIdentity();									// Reset the top of the modelview matrix to an identity matrix
@@ -47,7 +49,7 @@ void Renderer::displayMenu(std::vector<Entity*> entities)
 
 	glLoadIdentity();
 
-	for (Entity *e : entities)
+	for (Entity e : entities)
 	{
 		drawEntity(e);
 	}
@@ -55,12 +57,11 @@ void Renderer::displayMenu(std::vector<Entity*> entities)
 	glFlush();
 }
 
-std::pair<Renderer::X, Renderer::Y> Renderer::reshape(int width, int height, Player *p)
+std::pair<Renderer::X, Renderer::Y> Renderer::reshape(GLuint currentWidth, GLuint currentHeight, Player* p)
 {
-	float arNow = (float) width / height;
 
-	float w = screen_width / virtual_width;
-	float h = screen_height / virtual_height;
+	GLfloat w = (GLfloat)currentWidth / targetWidth;
+	GLfloat h = (GLfloat) currentHeight/ targetHeight;
 	const float c = 200.0f;
 	GLdouble camX = p->GetCoordinate().x - c * w;
 	GLdouble camXWidth = p->GetCoordinate().x + c * w;
@@ -72,7 +73,7 @@ std::pair<Renderer::X, Renderer::Y> Renderer::reshape(int width, int height, Pla
 	std::pair<X, Y> cam; cam.first.first = camX; cam.first.second = camXWidth; cam.second.first = camY; cam.second.second = camYHeight;
 
 
-	glViewport(0, 0, width, height);						// Reset the current viewport
+	glViewport(0, 0, currentWidth, currentHeight);						// Reset the current viewport
 
 	glMatrixMode(GL_PROJECTION);						// select the projection matrix stack
 	glLoadIdentity();									// reset the top of the projection matrix to an identity matrix
@@ -93,23 +94,73 @@ void Renderer::init()
 															//will clear the buffer to this colour.
 }
 
-void Renderer::drawEntity(Entity *entity)
+void Renderer::drawBackground()
+{
+	float edge = 500.0f;
+
+	glEnable(GL_TEXTURE_2D);
+
+	glBindTexture(GL_TEXTURE_2D, texture.textures["background"]);
+	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glPushMatrix();
+	glBegin(GL_QUADS);
+
+	glTexCoord2f(0.0, 0.0); 													glVertex2f(-edge, -edge);
+	glTexCoord2f(0.0,(GLfloat)targetHeight/512);								glVertex2f(-edge, edge + targetHeight);
+	glTexCoord2f((GLfloat)targetWidth/512, (GLfloat)targetHeight / 512);		glVertex2f(-edge + targetWidth, edge + targetHeight);
+	glTexCoord2f((GLfloat)targetWidth/512, 0.0);								glVertex2f(edge + targetWidth, -edge);
+
+
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
+	glPopMatrix();
+}
+
+void Renderer::drawEntity(Entity* entity)
+{
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_TEXTURE_2D);
+
+	glBindTexture(GL_TEXTURE_2D, entity->GetTextureID());
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+	glPushMatrix();
+	glTranslatef(entity->GetCoordinate().x, entity->GetCoordinate().y, 0.0);
+	glBegin(GL_QUADS);
+
+	glTexCoord2f(0.0, 0.0); glVertex2f(0.0f, 0.0f);
+	glTexCoord2f(0.0, 1.0); glVertex2f(0.0f, entity->GetLength().y);
+	glTexCoord2f(1.0, 1.0); glVertex2f(entity->GetLength().x, entity->GetLength().y);
+	glTexCoord2f(1.0, 0.0); glVertex2f(entity->GetLength().x, 0.0f);
+
+
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_BLEND);
+	glPopMatrix();
+}
+
+void Renderer::drawEntity(Entity entity)
 {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_TEXTURE_2D);
 	
-	glBindTexture(GL_TEXTURE_2D, entity->GetTextureID());
+	glBindTexture(GL_TEXTURE_2D, entity.GetTextureID());
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 	glPushMatrix();
-		glTranslatef(entity->GetCoordinate().x, entity->GetCoordinate().y, 0.0);
+		glTranslatef(entity.GetCoordinate().x, entity.GetCoordinate().y, 0.0);
 		glBegin(GL_QUADS);
 
 		glTexCoord2f(0.0, 0.0); glVertex2f(0.0f, 0.0f);
-		glTexCoord2f(0.0, 1.0); glVertex2f(0.0f, entity->GetLength().y);
-		glTexCoord2f(1.0, 1.0); glVertex2f(entity->GetLength().x, entity->GetLength().y);
-		glTexCoord2f(1.0, 0.0); glVertex2f(entity->GetLength().x, 0.0f);
+		glTexCoord2f(0.0, 1.0); glVertex2f(0.0f, entity.GetLength().y);
+		glTexCoord2f(1.0, 1.0); glVertex2f(entity.GetLength().x, entity.GetLength().y);
+		glTexCoord2f(1.0, 0.0); glVertex2f(entity.GetLength().x, 0.0f);
 
 
 		glEnd();

@@ -29,23 +29,28 @@
 class Renderer
 {	
 private:
-	float aspectRatio;
+	GLfloat targetWidth, targetHeight;
 	Texture texture;
 public:
 	typedef std::pair<GLdouble, GLdouble> X;
 	typedef std::pair<GLdouble, GLdouble> Y;
 
+	GET(Texture, texture, TextureList)
 	SET(Texture, texture, TextureList)
+		GET(GLfloat, targetWidth, TargetWidth)
+		SET(GLfloat, targetWidth, TargetWidth)
+		GET(GLfloat, targetHeight, TargetHeight)
+		SET(GLfloat, targetHeight, TargetHeight)
 
-	float screen_width, screen_height, virtual_width, virtual_height;
-
-	Renderer(float ratio);
+	Renderer(GLfloat targetW, GLfloat targetH);
 
 
-	void display(Player *p, std::vector<Entity*>);						//called in winmain to draw everything to the screen	
-	std::pair<X,Y> reshape(int width, int height, Player *p); //called when the window is resized
+	void display(Player*, std::vector<Entity>);						//called in winmain to draw everything to the screen	
+	std::pair<X,Y> reshape(GLuint width, GLuint height, Player* p); //called when the window is resized
 	void init();										//called in winmain when the program starts.									//called in winmain to update variables
-	void drawEntity(Entity *entity);			//draws an Entity (Player, NPC)
-	void displayMenu(std::vector<Entity*> entities);
+	void drawEntity(Entity* entity);
+	void drawEntity(Entity entity);			//draws an Entity (Player, NPC)
+	void displayMenu(GLuint width, GLuint height, std::vector<Entity> entities);
+	void drawBackground();
 };
 #endif

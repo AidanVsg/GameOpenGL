@@ -1,5 +1,6 @@
 #include <windows.h>		
 #include <iostream>
+#include <memory>
 #include "../glew/include/GL/glew.h"			
 #include "../View/Headers/Renderer.h"
 #include "../Object/Headers/NPC.h"
@@ -11,70 +12,112 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-
+#include <unordered_map>
 #include "../glm/glm/glm.hpp"
 #include "../glm/glm/gtc/matrix_transform.hpp"
 #include "../glm/glm/gtc/type_ptr.hpp"
-float worldWidth = 2500;
-float worldHeight = 2500;
-float jumpHeight = 70.0f;
-float pVelocityY = 18.0f;
 
-GLuint currentWidth = 1024, currentHeight = 768; //Current resolution
-GLuint targetWidth = 1024, targetHeight = 1024; //Target resolution
-GLfloat AR = ((float)targetWidth / targetHeight);
-double timerFrequencyRecip = 0.000003;
-float deltaT; //Delta time between each update cycle
-__int64 prevTime;
-glm::vec2 startingCoord;
-glm::vec2 pSize(25.0f, 25.0f);
+#define GAME_NULL_VELOCITY glm::vec2(0.0f, 0.0f)
+#define GAME_SQUARE_SIZE glm::vec2(25.0f, 25.0f)
+#define GAME_WORLD_WIDTH 2500
+#define GAME_WORLD_HEIGHT 2500
+#define GAME_JUMP_HEIGHT 70.0f
+#define GAME_INITIAL_VELOCITY glm::vec2(15.0f, 18.0f)
+#define GAME_PLAYER_SIZE GAME_SQUARE_SIZE
+#define GAME_GRID_CELL_SIZE 200
+#define GAME_TARGET_WIDTH GLuint(1024)
+#define GAME_TARGET_HEIGHT GLuint(1024)
 
-Texture t;
-GLuint plChar;
 
-//Player* player = new Player(glm::vec2(0.0f, 80.0f), pSize, glm::vec2(15.0f, pVelocityY), plChar , jumpHeight);
-Player* player = new Player();
-Renderer renderer(AR);
-//World world; //Deprecated. Using a Spatial Grid to collect world objects now.
-SpatialHash grid(worldWidth, worldHeight, 200);
-
+std::vector<int> acceptible;
+//Specifies if the game is Active, displaying Menu, Setting up or Quitting
 enum GameState
 {
 	MENU,
 	ACTIVE,
 	SETUP,
+	QUIT
 };
-
-GameState stateOfThisGame;
-
-void loadTextures();
-void checkGameState();
-void generateMapFile();
-void setCollisionFlags(int things[99][99], Entity* e, int i, int j);
-double timeSimulation(); //Simulates the delta of time for each update cycle
-void doCollisions();
-void processKeys_external();
-void update(); //Game update cycle to process objects on screen, keyboard, resolve collision, check jumping
-void render(int width, int height); //Renders the objects on screen
-void populateWorld(); //Function to populate the game world, adding objects to grid
-std::vector<Entity*> collected;
+//Mouse coordinates
+int mouse_x, mouse_y;
+//If left mouse button is pressed in menu
+bool mouseKeyPressed = false;
+//Is the world set up
+bool worldSetUp = false;
+//Current resolution
+GLuint currentWidth = 1024, currentHeight = 768; 
+//Frequency for delta time
+double timerFrequencyRecip = 0.000003;
+//Delta time between each update cycle
+float deltaT; 
+//Previous time used to calculate delta time
+__int64 prevTime;
+//Starting coordinate for player
+glm::vec2 startingCoord;
+//List of textures
+Texture t;
+//Initial player object
+Player* player = new Player(); GLuint plChar;
+//Rendering functions
+Renderer renderer(GAME_TARGET_WIDTH, GAME_TARGET_HEIGHT);
+//Spatial Grid to collect world objects
+SpatialHash grid(GAME_WORLD_WIDTH, GAME_WORLD_HEIGHT, GAME_GRID_CELL_SIZE);
+//Entities on screen that are going to be drawn and checked for collision
+std::vector<Entity> collected;
+//Player perspective to get Entities on screen
 std::pair<Renderer::X, Renderer::Y> cam;
-LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc
-void KillGLWindow();									// releases and destroys the window
-bool CreateGLWindow(char* title, int width, int height); //creates the window
-int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int);  // Win32 main function
+//Whether the user is playing, in Menu or wants to Quit
+GameState stateOfThisGame;
+//World world; //Deprecated. 
 
-													   //win32 global variabless
-HDC			hDC = NULL;		// Private GDI Device Context
-HGLRC		hRC = NULL;		// Permanent Rendering Context
-HWND		hWnd = NULL;		// Holds Our Window Handle
-HINSTANCE	hInstance;		// Holds The Instance Of The Application
+/*--------------------------Game functions------------------------------------------------------*/
+//Loads Entity textures
+void loadTextures();		
+//Checks if the game is in Menu, if user wants to Quit or is the game Active
+void checkGameState();	
+//Not used in code. Generates a map template.
+void generateMapFile();										
+void setCollisionFlags(int things[99][99], Entity &e, int i, int j);
+//Simulates the delta of time for each update cycle
+double timeSimulation();	
+//Checks for collisions of Entities that are displayed on the screen
+void doCollisions();
+//External keyboard processing (non-player movement, e.g. reset game)
+void processKeys_external();	
+//Game update cycle to process objects on screen, keyboard, resolve collision, check jumping
+void update();				
+//Renders the objects on screen
+void render(int width, int height);		
+//Function to populate the game world, adding objects to grid
+void populateWorld();		
+// Declaration For WndProc
+LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	
+// releases and destroys the window
+void KillGLWindow();					
+//creates the window
+bool CreateGLWindow(char* title, int width, int height);	
+// Win32 main function
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int);	
+/*------------------------------------------------------------------------------------------*/
+
+/*Win32 global variables:
+-----------------------------*/
+// Private GDI Device Context
+HDC			hDC = NULL;	
+// Permanent Rendering Context
+HGLRC		hRC = NULL;		
+// Holds Our Window Handle
+HWND		hWnd = NULL;	
+// Holds The Instance Of The Application
+HINSTANCE	hInstance;	
+/*--------------------------*/
 
 void checkGameState()
 {
 	if (stateOfThisGame == GameState::SETUP)
 	{
-		player = new Player(glm::vec2(0.0f, 80.0f), pSize, glm::vec2(15.0f, pVelocityY), plChar, jumpHeight); 
+		delete(player);
+		player = new Player(glm::vec2(0.0f, 80.0f), GAME_PLAYER_SIZE, GAME_INITIAL_VELOCITY, plChar, GAME_JUMP_HEIGHT);
 		std::cout << "Player created." << std::endl;
 
 		player->SetTextures(t);
@@ -83,7 +126,9 @@ void checkGameState()
 		std::cout << "Populating world." << std::endl; 
 		populateWorld();
 
-		stateOfThisGame == GameState::ACTIVE;
+		stateOfThisGame = GameState::ACTIVE;
+		worldSetUp = true;
+
 	}	
 	else if (stateOfThisGame == GameState::ACTIVE)
 	{
@@ -91,18 +136,46 @@ void checkGameState()
 	}
 	else
 	{
-		renderer.screen_height = currentHeight; renderer.screen_width = currentWidth; renderer.virtual_height = targetHeight; renderer.virtual_width = targetWidth;
 
-		Entity *start = new Entity(glm::vec2(25.0f, 25.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.00f, 0.0f), t.textures["start"]);
-		Entity *exit = new Entity(glm::vec2(25.0f, 60.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.00f, 0.0f), t.textures["start"]);
 
-		std::vector<Entity*> buttons;
-		buttons.push_back(start);
-		buttons.push_back(exit);
-		renderer.displayMenu(buttons);
+		Entity start = Entity(glm::vec2(25.0f, 25.0f), glm::vec2(100.0f, 100.0f), GAME_NULL_VELOCITY, t.textures["start"]);
+		Entity quit = Entity(glm::vec2(25.0f, 160.0f), glm::vec2(100.0f, 100.0f), GAME_NULL_VELOCITY, t.textures["quit"]);
+		Entity cursor = Entity(glm::vec2(mouse_x, mouse_y), glm::vec2(5.0f, 5.0f), GAME_NULL_VELOCITY, 0);
 
-		delete(start);
-		delete(exit);
+
+		std::vector<Entity> buttonslist;
+
+		buttonslist.push_back(start);
+		buttonslist.push_back(quit);
+		buttonslist.push_back(cursor);
+
+		std::vector<std::pair<Entity, int>> buttons;
+		
+		buttons.push_back({ start,0 });
+		buttons.push_back({ quit, 1 });
+
+		for (auto e : buttons)
+		{
+			bool on_x = cursor.GetCoordinate().x + cursor.GetLength().x >= e.first.GetCoordinate().x && e.first.GetCoordinate().x + e.first.GetLength().x >= cursor.GetCoordinate().x;
+			bool on_y = cursor.GetCoordinate().y + cursor.GetLength().y >= e.first.GetCoordinate().y && e.first.GetCoordinate().y + e.first.GetLength().y >= cursor.GetCoordinate().y;
+
+			if (on_x && on_y)
+			{
+				if (mouseKeyPressed)
+				{
+					if (e.second == 0)
+					{
+						if (!worldSetUp) stateOfThisGame = GameState::SETUP;
+						else stateOfThisGame = GameState::ACTIVE;
+					}
+					if (e.second == 1) stateOfThisGame = GameState::QUIT;
+				}
+
+				break;
+			}
+		}
+
+		renderer.displayMenu(currentWidth, currentHeight, buttonslist);
 	}
 }
 
@@ -110,18 +183,20 @@ void update()
 {		
 	collected = grid.collect(cam.first.first, cam.first.second, cam.second.first, cam.second.second);
 
-	processKeys_external();
-	player->processKeys();											//Process keyboard
-	doCollisions();													//Collision detection
-	player->checkJumpState(timeSimulation());						//Check if player is jumping/falling/on-ground
+	double dt = timeSimulation();
 
-	renderer.screen_height = currentHeight; renderer.screen_width = currentWidth; renderer.virtual_height = targetHeight; renderer.virtual_width = targetWidth;
+	processKeys_external();
+	doCollisions();													//Collision detection
+	player->processKeys();											//Process keyboard
+	player->checkJumpState(dt);						//Check if player is jumping/falling/on-ground
+
+	
 	cam = renderer.reshape(currentWidth, currentHeight, player);	//Sets Perspective GL Screen in respect to player coordinates
 	renderer.display(player, collected);							// Draw the scene
 	if (player->GetCoordinate().x < -100 || player->GetCoordinate().y < -100)
 	{
 		delete(player);
-		player = new Player(startingCoord, pSize, glm::vec2(15.0f, pVelocityY), plChar, jumpHeight);
+		player = new Player(startingCoord, GAME_PLAYER_SIZE, GAME_INITIAL_VELOCITY, plChar, GAME_JUMP_HEIGHT);
 		player->SetTextures(t);
 		std::cout << "Player reset." << std::endl;
 	}
@@ -143,6 +218,9 @@ void loadTextures()
 	t.textures["grass"] = tgaLoadAndBind("grass.tga", TGA_ALPHA);
 	t.textures["dirt"] = tgaLoadAndBind("dirt.tga", TGA_ALPHA);
 	t.textures["start"] = tgaLoadAndBind("start.tga", TGA_ALPHA);
+	t.textures["quit"] = tgaLoadAndBind("quit.tga", TGA_ALPHA);
+	t.textures["pea"] = tgaLoadAndBind("pea.tga", TGA_ALPHA);
+	t.textures["background"] = tgaLoadAndBind("background.tga", TGA_ALPHA);
 
 	std::cout << "Textures loaded." << std::endl;
 	
@@ -153,7 +231,10 @@ void processKeys_external()
 {
 	if (player->keys[0x52])
 	{
-		player = new Player(startingCoord, pSize, glm::vec2(15.0f, pVelocityY), plChar, jumpHeight);
+		delete(player);
+		player = new Player(startingCoord, GAME_PLAYER_SIZE, GAME_INITIAL_VELOCITY, plChar, GAME_JUMP_HEIGHT);
+		grid.clear();
+		populateWorld();
 		player->SetTextures(t);
 	}
 }
@@ -164,26 +245,31 @@ void render(int width, int height)
 	renderer.init();
 }
 
-void setCollisionFlags(int things[99][99], Entity* e, int i, int j )
+void setCollisionFlags(int things[99][99], Entity& e, int i, int j )
 {
 	if (things[i + 1][j] == 1 || things[i + 1][j] == 2)
-		e->SetN_up(true);
+		e.SetN_up(true);
 	if (things[i - 1][j] == 1 || things[i - 1][j] == 2)
-		e->SetN_down(true);
+		e.SetN_down(true);
 	if (things[i][j + 1] == 1 || things[i][j + 1] == 2)
-		e->SetN_right(true);
+		e.SetN_right(true);
 	if (things[i][j - 1] == 1 || things[i][j - 1] == 2)
-		e->SetN_left(true);
+		e.SetN_left(true);
 }
 
 void doCollisions()
 {	
 	player->resetCollisions(); //Each update cycle resets collision to none
 
-	for(Entity* e : collected) //For each entity on screen
+	for(Entity& e : collected) //For each entity on screen
 	{
 		if (player->checkCollision(e)) //AABB collision detection
 		{
+			if (e.GetDestructible() == true)
+			{
+				player->SetScore(player->GetScore() + 1);
+				grid.remove(e); break;
+			}			
 			player->collisionSide(e); //Check for the side of collision 
 		}
 	}
@@ -196,14 +282,30 @@ void generateMapFile()
 
 	out.open("level_template.amap", fstream::out);
 
-	for (int i = 0; i <= worldHeight/25; i++)
+	for (int i = 0; i <= GAME_WORLD_HEIGHT/25; i++)
 	{
-		for (int j = 0; j <= worldWidth/25; j++)
+		for (int j = 0; j <= GAME_WORLD_WIDTH/25; j++)
 		{
 			out << "0 ";
 		}
 		out << endl;
 	}
+}
+
+bool checkTileCode(int tileCode);
+bool checkTileCode(int tileCode)
+{
+	bool accept = false;
+
+	for (auto i : acceptible)
+	{
+		if (tileCode == i)
+		{
+			accept = true;
+			break;
+		}
+	}
+	return accept;
 }
 
 void populateWorld()
@@ -215,6 +317,7 @@ void populateWorld()
 	std::cout << "Loading " << levelName << "." << std::endl;
 	std::ifstream fstream(levelName);
 	std::vector<std::vector<GLuint>> tileData;
+	acceptible = { 1,2,7,5 };
 
 	int things[99][99];
 	if (fstream)
@@ -225,7 +328,7 @@ void populateWorld()
 			std::istringstream sstream(line);
 			while (sstream >> tileCode) 
 			{
-				if (tileCode == 1 || tileCode == 2 || tileCode == 5)
+				if (checkTileCode(tileCode))
 				{
 					things[100-row][col] = tileCode;
 				}
@@ -241,14 +344,21 @@ void populateWorld()
 		{
 			if (things[i][j] == 1)
 			{
-				Entity *e = new Entity(glm::vec2(j*25.0f, i*25.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), t.textures["dirt"]);
+				Entity e(glm::vec2(j*25.0f, i*25.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), t.textures["dirt"]);
 				setCollisionFlags(things, e, i, j);
 				grid.add(e);
 			}
 			if (things[i][j] == 2)
 			{
-				Entity *e = new Entity(glm::vec2(j*25.0f, i*25.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), t.textures["grass"]);
+				Entity e(glm::vec2(j*25.0f, i*25.0f), glm::vec2(25.0f, 25.0f), glm::vec2(0.08f, 0.033f), t.textures["grass"]);
 				setCollisionFlags(things, e, i, j);
+				grid.add(e);
+			}
+			if (things[i][j] == 7)
+			{
+				Entity e(glm::vec2((j*25.0f)+12.5f, (i*25.0f)+12.5f), glm::vec2(10.0f, 10.0f), glm::vec2(0.08f, 0.033f), t.textures["pea"]);
+				setCollisionFlags(things, e, i, j);
+				e.SetDestructible(true);
 				grid.add(e);
 			}
 			if (things[i][j] == 5)
@@ -292,7 +402,7 @@ int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
 	freopen_s(&stream, "CONOUT$", "w", stdout);
 
 	// Create Our OpenGL Window
-	if (!CreateGLWindow("OpenGL Win32 Example", currentWidth, currentHeight))
+	if (!CreateGLWindow("Peas Out!", currentWidth, currentHeight))
 	{
 		return 0;									// Quit If Window Was Not Created
 	}
@@ -315,7 +425,8 @@ int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
 		}
 		else										// If There Are No Messages
 		{
-				if (player->keys[VK_ESCAPE]) done = true;
+			if (player->keys[VK_ESCAPE]) stateOfThisGame = GameState::MENU;
+			if (stateOfThisGame == GameState::QUIT) done = true;
 
 				checkGameState();
 				SwapBuffers(hDC);							// Swap Buffers (Double Buffering)
@@ -355,22 +466,25 @@ LRESULT CALLBACK WndProc(HWND	hWnd,			// Handle For This Window
 
 	case WM_LBUTTONDOWN:
 	{
-		//mouse_x = LOWORD(lParam);
-		//mouse_y = screenHeight - HIWORD(lParam);
-		//LeftPressed = true;
+		mouseKeyPressed = true;
 	}
 	break;
 
 	case WM_LBUTTONUP:
 	{
-		//LeftPressed = false;
+		mouseKeyPressed = false;
 	}
 	break;
 
 	case WM_MOUSEMOVE:
 	{
-		/*mouse_x = LOWORD(lParam);
-		mouse_y = screenHeight - HIWORD(lParam);*/
+		if (stateOfThisGame == MENU)
+		{
+			mouse_x = LOWORD(lParam);
+			mouse_y = currentHeight - HIWORD(lParam);
+		}
+
+		//LeftPressed = true;
 	}
 	break;
 	case WM_KEYDOWN:							// Is A Key Being Held Down?

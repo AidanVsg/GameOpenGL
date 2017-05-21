@@ -9,6 +9,7 @@
 #include "../glm/glm/glm.hpp"
 #include "../glm/glm/gtc/matrix_transform.hpp"
 #include "../glm/glm/gtc/type_ptr.hpp"
+#include <memory>
 
 
 #define GET(Type, MemberName, FaceName) \
@@ -29,15 +30,15 @@ struct SimpleHash {
 class SpatialHash {
 public:
 	typedef glm::vec2 GridCoordinates;
-	typedef std::vector<Entity*> Entities;
+	typedef std::vector<Entity> Entities;
 	typedef std::unordered_map<GridCoordinates, Entities, SimpleHash> Grid;
 	//CONSTRUCTORS
 	SpatialHash();
 	SpatialHash(float wWidth, float wHeight, int cellSize);
 
 
-	void add(Entity* &e), remove(Entity &e), clear();
-	std::vector<Entity*> collect(float camX, float camY, float camXWidth, float camYHeigh);
+	void add(Entity &e), remove(Entity e), clear();
+	std::vector<Entity> collect(float camX, float camY, float camXWidth, float camYHeigh);
 private:
 
 

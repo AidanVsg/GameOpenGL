@@ -37,11 +37,13 @@ public:
 
 	GET(Texture, t, Textures)
 	SET(Texture, t, Textures)
+	GET(int, score, Score)
+	SET(int, score, Score)
 
 	bool keys[256];
 
-	bool checkCollision(Entity* &second);
-	void collisionSide(Entity* &e);
+	bool checkCollision(Entity &second);
+	void collisionSide(Entity &e);
 	void resetCollisions(), processKeys(), moveRight(), moveLeft(), jump(), checkJumpState(float dt);
 private:
 	Texture t;
@@ -49,6 +51,7 @@ private:
 	JumpState jstate;
 	Moving moving;
 	float initialCoordY, jumpHeight, seconds_on_ground;
+	int score;
 	glm::vec2 initialVelocity;
 };
 
