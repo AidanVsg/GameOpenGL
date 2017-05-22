@@ -23,12 +23,15 @@ void Renderer::display(Player* p, std::vector<Entity> entities)
 	}
 	
 	freetype::print(our_font, 25.0f, heightInfo - 40.0f, "Score: %i", p->GetScore());
+	freetype::print(our_font, 250.0f, heightInfo - 40.0f, "Lives: %i", p->GetLives());
+
+	if(p->GetLives() < 1) freetype::print(our_font, widthInfo / 2.0f, heightInfo / 2.0f, "YOU DIED");
 
 	glFlush();
 
 }
 
-void Renderer::displayMenu(GLuint currentWidth, GLuint currentHeight, std::vector<Entity> entities)
+void Renderer::displayMenu(GLuint currentWidth, GLuint currentHeight, std::vector<Entity> entities, bool beatGame, Player* p)
 {
 	GLfloat w = (GLfloat)currentWidth / targetWidth;
 	GLfloat h = (GLfloat)currentHeight / targetHeight;
@@ -79,6 +82,8 @@ void Renderer::displayMenu(GLuint currentWidth, GLuint currentHeight, std::vecto
 
 	glPopMatrix();
 
+	if (beatGame) freetype::print(our_font, 0.0f, currentHeight - 50.0f, "Congratulations! Your score is %i", p->GetScore());
+
 	freetype::print(our_font, 150.0f, 200.0f, "Quit");
 	freetype::print(our_font, 150.0f, 50.0f, "Play");
 
@@ -103,7 +108,7 @@ std::pair<Renderer::X, Renderer::Y> Renderer::reshape(GLuint currentWidth, GLuin
 	GLdouble camY = p->GetCoordinate().y - c * h;
 	GLdouble camYHeight = p->GetCoordinate().y + c *h;
 
-	heightInfo = currentHeight;
+	heightInfo = currentHeight; widthInfo = currentWidth;
 
 	std::pair<X, Y> cam; cam.first.first = camX; cam.first.second = camXWidth; cam.second.first = camY; cam.second.second = camYHeight;
 

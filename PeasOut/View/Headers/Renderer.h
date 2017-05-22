@@ -31,7 +31,7 @@ class Renderer
 {	
 private:
 	GLfloat targetWidth, targetHeight;
-	GLfloat heightInfo;
+	GLfloat heightInfo, widthInfo;
 	freetype::font_data our_font;
 	Texture texture;
 public:
@@ -54,7 +54,7 @@ public:
 	void init();										//called in winmain when the program starts.									//called in winmain to update variables
 	void drawEntity(Entity* entity);
 	void drawEntity(Entity entity);			//draws an Entity (Player, NPC)
-	void displayMenu(GLuint width, GLuint height, std::vector<Entity> entities);
+	void displayMenu(GLuint width, GLuint height, std::vector<Entity> entities, bool beatGame, Player* p);
 	void drawBackground(GLuint bkgr);
 };
 #endif

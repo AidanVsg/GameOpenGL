@@ -29,12 +29,16 @@
 #define GAME_GRID_CELL_SIZE 200
 #define GAME_TARGET_WIDTH GLuint(1024)
 #define GAME_TARGET_HEIGHT GLuint(1024)
+#define GAME_PLAYER_MAX_LIFE 3
+#define GAME_STARTING_SCORE 0
 
 
 std::vector<std::string> levels;
 std::vector<int> acceptTiles;
 int thisLevel = 0;
 int currentScore = 0;
+int currentLife = GAME_PLAYER_MAX_LIFE;
+bool beatGame = 0;
 //Specifies if the game is Active, displaying Menu, Setting up or Quitting
 enum GameState
 {
@@ -123,17 +127,19 @@ void checkGameState()
 {
 	if (stateOfThisGame == GameState::SETUP)
 	{
+		thisLevel = 0;
+		currentScore = GAME_STARTING_SCORE;
+		currentLife = GAME_PLAYER_MAX_LIFE;
+		grid.clear();
 		delete(player);
-		player = new Player(glm::vec2(0.0f, 80.0f), GAME_PLAYER_SIZE, GAME_INITIAL_VELOCITY, plChar, GAME_JUMP_HEIGHT, 0);
+		player = new Player(glm::vec2(0.0f, 80.0f), GAME_PLAYER_SIZE, GAME_INITIAL_VELOCITY, plChar, GAME_JUMP_HEIGHT, NULL, GAME_PLAYER_MAX_LIFE);
 		std::cout << "Player created." << std::endl;
 
 		player->SetTextures(t);
 		std::cout << "Player texture list set." << std::endl;
-
-		getMaps();
 		
 		std::cout << "Populating world." << std::endl; 
-		populateWorld(0);
+		populateWorld(thisLevel);
 
 		stateOfThisGame = GameState::ACTIVE;
 		worldSetUp = true;
@@ -172,7 +178,11 @@ void checkGameState()
 				{
 					if (e.second == 0)
 					{
-						if (!worldSetUp) stateOfThisGame = GameState::SETUP;
+						if (!worldSetUp)
+						{
+							stateOfThisGame = GameState::SETUP;
+							beatGame = false;
+						}
 						else stateOfThisGame = GameState::ACTIVE;
 					}
 					if (e.second == 1) stateOfThisGame = GameState::QUIT;
@@ -182,8 +192,17 @@ void checkGameState()
 			}
 		}
 
-		renderer.displayMenu(currentWidth, currentHeight, buttonslist);
+		renderer.displayMenu(currentWidth, currentHeight, buttonslist, beatGame, player);
 	}
+}
+void processPlayer();
+void processPlayer()
+{
+	currentScore = player->GetScore();
+	currentLife = player->GetLives() - 1;
+	delete(player);
+	player = new Player(startingCoord, GAME_PLAYER_SIZE, GAME_INITIAL_VELOCITY, plChar, GAME_JUMP_HEIGHT, currentScore, currentLife);
+	player->SetTextures(t);
 }
 
 void update()
@@ -192,21 +211,21 @@ void update()
 
 	double dt = timeSimulation();
 
-	processKeys_external();
-	doCollisions();									//Collision detection
-	player->processKeys();							//Process keyboard
-	player->checkJumpState(dt);						//Check if player is jumping/falling/on-ground
+	if (currentLife > 0)
+	{
+		processKeys_external();
+		doCollisions();									//Collision detection
+		player->processKeys();							//Process keyboard
+		player->checkJumpState(dt);						//Check if player is jumping/falling/on-ground
+	}
 
 	//Sets Perspective GL Screen in respect to player coordinates
 	cam = renderer.reshape(currentWidth, currentHeight, player);	
 	renderer.display(player, collected);			// Draw the scene of objects near player
 	if (player->GetCoordinate().x < -100 || player->GetCoordinate().y < -100)
 	{
-		currentScore = player->GetScore();
-		delete(player);
-		player = new Player(startingCoord, GAME_PLAYER_SIZE, GAME_INITIAL_VELOCITY, plChar, GAME_JUMP_HEIGHT, currentScore);
-		player->SetTextures(t);
-		std::cout << "Player reset." << std::endl;
+		processPlayer();
+		std::cout << "Player fell." << std::endl;
 	}
 }
 
@@ -243,10 +262,11 @@ void processKeys_external()
 	if (player->keys[0x52])
 	{
 		delete(player);
-		player = new Player(startingCoord, GAME_PLAYER_SIZE, GAME_INITIAL_VELOCITY, plChar, GAME_JUMP_HEIGHT, currentScore);
+		player = new Player(startingCoord, GAME_PLAYER_SIZE, GAME_INITIAL_VELOCITY, plChar, GAME_JUMP_HEIGHT, currentScore, currentLife);
 		grid.clear();
 		populateWorld(thisLevel);
 		player->SetTextures(t);
+		std::cout << "Player reset." << std::endl;
 	}
 }
 
@@ -302,6 +322,7 @@ void nextLevel()
 	else
 	{
 		worldSetUp = false;
+		beatGame = true;
 		stateOfThisGame = GameState::MENU;
 		grid.clear();
 	}
@@ -551,6 +572,8 @@ LRESULT CALLBACK WndProc(HWND	hWnd,			// Handle For This Window
 	case WM_KEYDOWN:							// Is A Key Being Held Down?
 	{
 		player->keys[wParam] = true;					// If So, Mark It As TRUE
+		if (player->GetLives() < 1 && stateOfThisGame == GameState::ACTIVE) 
+			stateOfThisGame = GameState::SETUP;
 		return 0;								// Jump Back
 	}
 	break;
@@ -731,6 +754,7 @@ bool CreateGLWindow(char* title, int width, int height)
 	freetype::font_data font;
 	font.init("arialbd.ttf", 36);
 	renderer.SetFont(font);
+	getMaps();
 
 	return true;									// Success
 }

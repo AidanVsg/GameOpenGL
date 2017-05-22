@@ -7,7 +7,7 @@
 class Player : public Entity {
 public:
 	Player();
-	Player(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, GLuint texID, float jumpH, int sc);
+	Player(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, GLuint texID, float jumpH, int sc, int life);
 	//~Player();
 
 	enum JumpState {
@@ -39,6 +39,8 @@ public:
 	SET(Texture, t, Textures)
 	GET(int, score, Score)
 	SET(int, score, Score)
+		GET(int, lives, Lives)
+		SET(int, lives, Lives)
 
 	bool keys[256];
 
@@ -51,7 +53,7 @@ private:
 	JumpState jstate;
 	Moving moving;
 	float initialCoordY, jumpHeight, seconds_on_ground;
-	int score;
+	int score, lives;
 	glm::vec2 initialVelocity;
 };
 

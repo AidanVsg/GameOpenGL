@@ -1,12 +1,14 @@
 ﻿#include "../Object/Headers/Player.h"
 #include <iostream>
 
-Player::Player() : Entity(), jumpHeight(0.0f), jstate(JumpState::FALLING), collision(Direction::NONE, Direction::NONE), initialVelocity(velocity), seconds_on_ground(0), moving(Moving::OTHER), score(0)
+Player::Player() : Entity(), jumpHeight(0.0f), jstate(JumpState::FALLING), collision(Direction::NONE, Direction::NONE), initialVelocity(velocity),
+	seconds_on_ground(0), moving(Moving::OTHER), score(0), lives(0)
 { }
 
 Player::Player(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, GLuint texID,
-	float jumpH, int sc)
-	: Entity(coords, len, vel, texID), jstate(JumpState::FALLING), jumpHeight(jumpH), initialVelocity(velocity), collision(Direction::NONE, Direction::NONE), seconds_on_ground(0), moving(Moving::OTHER), score(sc)
+	float jumpH, int sc, int life)
+	: Entity(coords, len, vel, texID), jstate(JumpState::FALLING), jumpHeight(jumpH), initialVelocity(velocity), collision(Direction::NONE, Direction::NONE),
+	seconds_on_ground(0), moving(Moving::OTHER), score(sc), lives(life)
 { }
 
 void Player::processKeys()
