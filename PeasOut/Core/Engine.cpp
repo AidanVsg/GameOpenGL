@@ -32,13 +32,18 @@
 #define GAME_PLAYER_MAX_LIFE 3
 #define GAME_STARTING_SCORE 0
 
-
+//List of available levels in the directory of the game (.amap extension)
 std::vector<std::string> levels;
+//List of accepted tiles that level reading function will convert into tiles
 std::vector<int> acceptTiles;
-int thisLevel = 0;
-int currentScore = 0;
+//Set current level to NULL (1 element of array)
+int thisLevel = NULL;
+//Set current score to NULL 
+int currentScore = NULL;
+//Set current life as maximum available during initialisation
 int currentLife = GAME_PLAYER_MAX_LIFE;
-bool beatGame = 0;
+//If the last level was finished
+bool beatGame = false;
 //Specifies if the game is Active, displaying Menu, Setting up or Quitting
 enum GameState
 {
@@ -47,6 +52,8 @@ enum GameState
 	SETUP,
 	QUIT,
 };
+//Font that is used to text in the game
+freetype::font_data font;
 //Mouse coordinates
 int mouse_x, mouse_y;
 //If left mouse button is pressed in menu
@@ -80,7 +87,14 @@ GameState stateOfThisGame;
 //World world; //Deprecated. 
 
 /*--------------------------Game functions------------------------------------------------------*/
+
+//Processes player, setting proper life and score after an event trigger
+void processPlayer();
+//Checks if current tile code is an acceptable tile
+bool checkTileCode(int tileCode);
+//Switch to next level when portal is entered
 void nextLevel();
+//Gets all ".amap" extension files in current directory of the game executable
 void getMaps();
 //Loads Entity textures
 void loadTextures();		
@@ -195,7 +209,7 @@ void checkGameState()
 		renderer.displayMenu(currentWidth, currentHeight, buttonslist, beatGame, player);
 	}
 }
-void processPlayer();
+
 void processPlayer()
 {
 	currentScore = player->GetScore();
@@ -222,7 +236,11 @@ void update()
 	//Sets Perspective GL Screen in respect to player coordinates
 	cam = renderer.reshape(currentWidth, currentHeight, player);	
 	renderer.display(player, collected);			// Draw the scene of objects near player
-	if (player->GetCoordinate().x < -100 || player->GetCoordinate().y < -100)
+	const float padding = 100.0f;
+	if (player->GetCoordinate().x < -padding 
+			|| player->GetCoordinate().y < -padding 
+			|| player->GetCoordinate().x > GAME_WORLD_WIDTH + padding 
+			|| player->GetCoordinate().y  > GAME_WORLD_HEIGHT + padding)
 	{
 		processPlayer();
 		std::cout << "Player fell." << std::endl;
@@ -316,6 +334,7 @@ void nextLevel()
 {
 	if (thisLevel < levels.size())
 	{
+		currentScore = player->GetScore();
 		grid.clear();
 		populateWorld(thisLevel);
 	}
@@ -345,7 +364,6 @@ void generateMapFile()
 	}
 }
 
-bool checkTileCode(int tileCode);
 bool checkTileCode(int tileCode)
 {
 	bool accept = false;
@@ -484,7 +502,7 @@ int WINAPI WinMain(HINSTANCE	hInstance,			// Instance
 	freopen_s(&stream, "CONOUT$", "w", stdout);
 
 	// Create Our OpenGL Window
-	if (!CreateGLWindow("Peas Out!", currentWidth, currentHeight))
+	if (!CreateGLWindow("Peas Out! A Legend of Lost Peas", currentWidth, currentHeight))
 	{
 		return 0;									// Quit If Window Was Not Created
 	}
@@ -574,6 +592,11 @@ LRESULT CALLBACK WndProc(HWND	hWnd,			// Handle For This Window
 		player->keys[wParam] = true;					// If So, Mark It As TRUE
 		if (player->GetLives() < 1 && stateOfThisGame == GameState::ACTIVE) 
 			stateOfThisGame = GameState::SETUP;
+
+		if (player->keys[VK_F11])
+		{
+
+		}
 		return 0;								// Jump Back
 	}
 	break;
@@ -622,6 +645,8 @@ void KillGLWindow()								// Properly Kill The Window
 		MessageBox(NULL, "Could Not Unregister Class.", "SHUTDOWN ERROR", MB_OK | MB_ICONINFORMATION);
 		hInstance = NULL;									// Set hInstance To NULL
 	}
+
+	font.clean();
 }
 
 /*	This Code Creates Our OpenGL Window.  Parameters Are:					*
@@ -751,7 +776,6 @@ bool CreateGLWindow(char* title, int width, int height)
 	render(width, height);
 	
 	loadTextures();
-	freetype::font_data font;
 	font.init("arialbd.ttf", 36);
 	renderer.SetFont(font);
 	getMaps();

@@ -79,8 +79,9 @@ void Renderer::displayMenu(GLuint currentWidth, GLuint currentHeight, std::vecto
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 
-
 	glPopMatrix();
+
+	glColor3f(0.0, 0.0, 0.0);
 
 	if (beatGame) freetype::print(our_font, 0.0f, currentHeight - 50.0f, "Congratulations! Your score is %i", p->GetScore());
 
