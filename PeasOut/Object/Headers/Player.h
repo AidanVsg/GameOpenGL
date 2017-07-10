@@ -3,11 +3,13 @@
 
 #include "../Object/Headers/Entity.h"
 #include <windows.h>
+#include <irrklang/irrKlang.h>
+using namespace irrklang;
 
 class Player : public Entity {
 public:
 	Player();
-	Player(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, GLuint texID, float jumpH, int sc, int life);
+	Player(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, GLuint texID, float jumpH, int sc, int life, ISoundEngine* sound);
 	//~Player();
 
 	enum JumpState {
@@ -48,6 +50,7 @@ public:
 	void collisionSide(Entity &e);
 	void resetCollisions(), processKeys(), moveRight(), moveLeft(), jump(), checkJumpState(float dt);
 private:
+	ISoundEngine* soundEng;
 	Texture t;
 	CollisionSides collision;
 	JumpState jstate;

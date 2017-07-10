@@ -1,14 +1,15 @@
 ﻿#include "../Object/Headers/Player.h"
 #include <iostream>
 
+
 Player::Player() : Entity(), jumpHeight(0.0f), jstate(JumpState::FALLING), collision(Direction::NONE, Direction::NONE), initialVelocity(velocity),
 	seconds_on_ground(0), moving(Moving::OTHER), score(0), lives(0)
 { }
 
 Player::Player(glm::vec2 coords, glm::vec2 len, glm::vec2 vel, GLuint texID,
-	float jumpH, int sc, int life)
+	float jumpH, int sc, int life, ISoundEngine* sound)
 	: Entity(coords, len, vel, texID), jstate(JumpState::FALLING), jumpHeight(jumpH), initialVelocity(velocity), collision(Direction::NONE, Direction::NONE),
-	seconds_on_ground(0), moving(Moving::OTHER), score(sc), lives(life)
+	seconds_on_ground(0), moving(Moving::OTHER), score(sc), lives(life), soundEng(sound)
 { }
 
 void Player::processKeys()
@@ -188,6 +189,7 @@ void Player::checkJumpState(float dt)
 		}
 		break;
 	case JUMPING:
+		if (!soundEng->isCurrentlyPlaying("audio/jump.wav")) soundEng->play2D("audio/jump.wav");
 
 		if (moving == Moving::OTHER) textureID = t.textures["pCharU"];
 

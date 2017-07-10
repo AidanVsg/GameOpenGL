@@ -18,6 +18,8 @@
 #include "../glm/glm/gtc/type_ptr.hpp"
 #include <experimental\filesystem>
 #include "../View/Headers/FreeType.h"
+#include <irrklang/irrKlang.h>
+using namespace irrklang;
 
 #define GAME_NULL_VELOCITY glm::vec2(0.0f, 0.0f)
 #define GAME_SQUARE_SIZE glm::vec2(25.0f, 25.0f)
@@ -31,6 +33,7 @@
 #define GAME_TARGET_HEIGHT GLuint(1024)
 #define GAME_PLAYER_MAX_LIFE 3
 #define GAME_STARTING_SCORE 0
+#define RANGE(x,y,z) ((x>=y)&&(x<=z))
 
 //List of available levels in the directory of the game (.amap extension)
 std::vector<std::string> levels;
@@ -52,6 +55,8 @@ enum GameState
 	SETUP,
 	QUIT,
 };
+ISoundEngine *SoundEngine = createIrrKlangDevice();
+
 //Font that is used to text in the game
 freetype::font_data font;
 //Mouse coordinates
@@ -146,7 +151,7 @@ void checkGameState()
 		currentLife = GAME_PLAYER_MAX_LIFE;
 		grid.clear();
 		delete(player);
-		player = new Player(glm::vec2(0.0f, 80.0f), GAME_PLAYER_SIZE, GAME_INITIAL_VELOCITY, plChar, GAME_JUMP_HEIGHT, NULL, GAME_PLAYER_MAX_LIFE);
+		player = new Player(glm::vec2(0.0f, 80.0f), GAME_PLAYER_SIZE, GAME_INITIAL_VELOCITY, plChar, GAME_JUMP_HEIGHT, NULL, GAME_PLAYER_MAX_LIFE, SoundEngine);
 		std::cout << "Player created." << std::endl;
 
 		player->SetTextures(t);
@@ -158,13 +163,20 @@ void checkGameState()
 		stateOfThisGame = GameState::ACTIVE;
 		worldSetUp = true;
 
+
 	}	
 	else if (stateOfThisGame == GameState::ACTIVE)
 	{
+		if (SoundEngine->isCurrentlyPlaying("audio/gw2.mp3"))
+		{
+			SoundEngine->stopAllSounds();
+		}
+		if (!SoundEngine->isCurrentlyPlaying("audio/game.mp3")) SoundEngine->play2D("audio/game.mp3");
 		update();
 	}
 	else
 	{
+		if (SoundEngine->isCurrentlyPlaying("audio/game.mp3")) SoundEngine->stopAllSounds();
 		Entity start = Entity(glm::vec2(25.0f, 25.0f), glm::vec2(100.0f, 100.0f), GAME_NULL_VELOCITY, t.textures["start"]);
 		Entity quit = Entity(glm::vec2(25.0f, 160.0f), glm::vec2(100.0f, 100.0f), GAME_NULL_VELOCITY, t.textures["quit"]);
 		Entity cursor = Entity(glm::vec2(mouse_x, mouse_y), glm::vec2(5.0f, 5.0f), GAME_NULL_VELOCITY, t.textures["cursor"]);
@@ -215,7 +227,7 @@ void processPlayer()
 	currentScore = player->GetScore();
 	currentLife = player->GetLives() - 1;
 	delete(player);
-	player = new Player(startingCoord, GAME_PLAYER_SIZE, GAME_INITIAL_VELOCITY, plChar, GAME_JUMP_HEIGHT, currentScore, currentLife);
+	player = new Player(startingCoord, GAME_PLAYER_SIZE, GAME_INITIAL_VELOCITY, plChar, GAME_JUMP_HEIGHT, currentScore, currentLife, SoundEngine);
 	player->SetTextures(t);
 }
 
@@ -245,6 +257,7 @@ void update()
 		processPlayer();
 		std::cout << "Player fell." << std::endl;
 	}
+	
 }
 
 void loadTextures()
@@ -280,7 +293,7 @@ void processKeys_external()
 	if (player->keys[0x52])
 	{
 		delete(player);
-		player = new Player(startingCoord, GAME_PLAYER_SIZE, GAME_INITIAL_VELOCITY, plChar, GAME_JUMP_HEIGHT, currentScore, currentLife);
+		player = new Player(startingCoord, GAME_PLAYER_SIZE, GAME_INITIAL_VELOCITY, plChar, GAME_JUMP_HEIGHT, currentScore, currentLife, SoundEngine);
 		grid.clear();
 		populateWorld(thisLevel);
 		player->SetTextures(t);
@@ -321,6 +334,7 @@ void doCollisions()
 			}			
 			if (e.GetTextureID() == t.textures["portal"])
 			{
+				SoundEngine->play2D("audio/portal.wav");
 				thisLevel++;
 				nextLevel();				
 				break;
@@ -779,6 +793,10 @@ bool CreateGLWindow(char* title, int width, int height)
 	font.init("arialbd.ttf", 36);
 	renderer.SetFont(font);
 	getMaps();
+	SoundEngine->setSoundVolume(0.5f);
+	SoundEngine->play2D("audio/gw2.mp3", GL_TRUE);
+	//SoundEngine->play2D("audio/gw2.mp3", GL_TRUE);
+	std::cout << RANGE(2, 1, 10) << std::endl;
 
 	return true;									// Success
 }
