@@ -1,5 +1,4 @@
-# Coursework Assignment - Platformer in OpenGL
-#### School of Computing Science, University of East Anglia
+# Platformer in OpenGL
 ---
 The platform game should enable the user to control (a) character(s) that move(s) on multiple platforms. 
 - The following features are essential:
@@ -30,10 +29,6 @@ adjacent) level(s).
   - More than one level
   - A level editor
   - Additional game information 
-
-# Notes
----
-I decided to try and use Git (and GitHub) during my courseworks in order to get more accustomed to the revision/versioning system. During my next projects and courseworks, I will try to make better assumptions and comments during my commits.
 
 
 
